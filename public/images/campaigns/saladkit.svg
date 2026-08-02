@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#6C5CE7"/><stop offset="1" stop-color="#A594F9"/>
+  </linearGradient></defs>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <circle cx="200" cy="150" r="72" fill="#fff" opacity="0.12"/>
+  <path d="M130 168 L270 168 L250 214 Q200 226 150 214 Z" fill="#fff" opacity="0.95"/>
+  <ellipse cx="200" cy="168" rx="70" ry="16" fill="#fff" opacity="0.95"/>
+  <g fill="#fff" opacity="0.9">
+    <ellipse cx="175" cy="128" rx="16" ry="10" transform="rotate(-20 175 128)"/>
+    <ellipse cx="205" cy="118" rx="16" ry="10" transform="rotate(5 205 118)"/>
+    <ellipse cx="232" cy="130" rx="16" ry="10" transform="rotate(25 232 130)"/>
+  </g>
+</svg>

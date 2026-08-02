@@ -1,0 +1,66 @@
+[
+  {
+    "id": "p1",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c1",
+    "referralCode": "JISU-SUNGLOW",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "p2",
+    "promoterId": "promoter-minsu",
+    "campaignId": "c1",
+    "referralCode": "MINSU-SUNGLOW",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "p3",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c2",
+    "referralCode": "JISU-SERUM",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "p4",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c3",
+    "referralCode": "JISU-CREAM",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "p5",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c4",
+    "referralCode": "JISU-CLEANSING",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "p6",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c5",
+    "referralCode": "JISU-EYECREAM",
+    "clicks": 0,
+    "joinedAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "26d27f02-6bd5-4a85-92ca-c5aba95b7fed",
+    "promoterId": "promoter-jisu",
+    "campaignId": "2779a3db-05c7-4176-a34b-71aee5af56fe",
+    "referralCode": "지수-저자극어성초진정토너",
+    "clicks": 0,
+    "joinedAt": "2026-08-02T12:11:28.352Z"
+  },
+  {
+    "id": "db9b0007-6dfc-4a72-a61f-c4f2f15b0e8f",
+    "promoterId": "promoter-jisu",
+    "campaignId": "7d040966-e625-47b7-abe4-1478ad575294",
+    "referralCode": "지수-V2저자극어성초진정",
+    "clicks": 0,
+    "joinedAt": "2026-08-02T15:48:54.498Z"
+  }
+]

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="1200" height="680" style="background:#ffffff; font-family:'Pretendard', -apple-system, sans-serif;">
+  <!-- Style Definitions -->
+  <style>
+    .dashed-box { fill: #fcfdff; stroke: #3b82f6; stroke-width: 2; stroke-dasharray: 6 6; rx: 16; }
+    .card-panel { fill: #ffffff; stroke: #e2e8f0; stroke-width: 1.5; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.05)); rx: 12; }
+    .magenta-box { fill: #ffffff; stroke: #ec4899; stroke-width: 2; rx: 8; }
+    .purple-box { fill: #ffffff; stroke: #8b5cf6; stroke-width: 2; rx: 8; }
+    .title-text { font-size: 18px; font-weight: 800; fill: #0f172a; }
+    .subtitle-text { font-size: 13px; font-weight: 500; fill: #64748b; }
+    .node-text { font-size: 15px; font-weight: 700; fill: #1e293b; }
+    .code-text { font-size: 13px; font-weight: 600; fill: #d946ef; font-family: monospace; }
+    .conn-line { fill: none; stroke: #ec4899; stroke-width: 2.5; }
+    .conn-arrow { fill: #ec4899; }
+  </style>
+
+  <!-- 1. 광고주 지갑 (Top) -->
+  <rect x="420" y="30" width="360" height="70" class="card-panel" />
+  <rect x="435" y="45" width="330" height="40" class="purple-box" />
+  <text x="600" y="70" text-anchor="middle" class="node-text" fill="#7c3aed">1. 광고주 지갑 (Advertiser USDC ATA)</text>
+
+  <!-- Flow Line 1 -> 2 -->
+  <path d="M 600 100 L 600 140" class="conn-line" />
+  <polygon points="600,148 594,138 606,138" class="conn-arrow" />
+  <rect x="610" y="112" width="220" height="24" rx="4" fill="#fdf2f8" />
+  <text x="720" y="128" text-anchor="middle" class="code-text">Step 1: create_campaign (USDC 입금)</text>
+
+  <!-- 2. 온체인 에스크로 영역 (Dashed Box) -->
+  <rect x="100" y="150" width="1000" height="180" class="dashed-box" />
+  <text x="120" y="180" class="title-text" fill="#2563eb">Solana Devnet 온체인 에스크로 (Escrow Program)</text>
+  <text x="500" y="180" class="subtitle-text">Program ID: 4KocVh769f9Z43717gsSW9Wp4863eQ7npKSWEbDbwLPP</text>
+
+  <!-- Campaign PDA & Vault PDA -->
+  <rect x="140" y="200" width="430" height="100" class="card-panel" />
+  <text x="160" y="235" class="node-text">Campaign PDA 계정</text>
+  <text x="160" y="260" class="subtitle-text">총예산 · 누적정산액 · 온체인 정보 보관</text>
+  <text x="160" y="282" class="code-text">seeds = [b"campaign", advertiser, id]</text>
+
+  <rect x="630" y="200" width="430" height="100" class="card-panel" />
+  <text x="650" y="235" class="node-text">Vault PDA 토큰 계정 (USDC 잠금)</text>
+  <text x="650" y="260" class="subtitle-text">광고주 예산 USDC가 입금되어 잠기는 에스크로 계정</text>
+  <text x="650" y="282" class="code-text">seeds = [b"vault", campaign.key]</text>
+
+  <!-- Flow Line 2 -> 3 -->
+  <path d="M 600 330 L 600 370" class="conn-line" />
+  <polygon points="600,378 594,368 606,368" class="conn-arrow" />
+  <rect x="610" y="342" width="260" height="24" rx="4" fill="#fdf2f8" />
+  <text x="740" y="358" text-anchor="middle" class="code-text">Step 2: 구매발생 &amp; 확정대기 조건 검증</text>
+
+  <!-- 3. Web & AI Engine 영역 (Dashed Box) -->
+  <rect x="100" y="380" width="1000" height="120" class="dashed-box" style="stroke:#8b5cf6;" />
+  <text x="120" y="410" class="title-text" fill="#7c3aed">Linko 백엔드 &amp; Gemini AI 검증 엔진</text>
+
+  <rect x="140" y="425" width="430" height="60" class="card-panel" />
+  <text x="355" y="460" text-anchor="middle" class="node-text">Node.js 정산 엔진 (settlementEngine.mjs)</text>
+
+  <rect x="630" y="425" width="430" height="60" class="card-panel" />
+  <text x="845" y="460" text-anchor="middle" class="node-text">Gemini 3.6/2.0 AI 에이전트 (Function Calling)</text>
+
+  <!-- Flow Line 3 -> 4 -->
+  <path d="M 600 500 L 600 540" class="conn-line" />
+  <polygon points="600,548 594,538 606,538" class="conn-arrow" />
+  <rect x="610" y="512" width="280" height="24" rx="4" fill="#fdf2f8" />
+  <text x="750" y="528" text-anchor="middle" class="code-text">Step 3 &amp; 4: settle_commission (CPI 릴리즈)</text>
+
+  <!-- 4. 크리에이터 지갑 (Bottom) -->
+  <rect x="420" y="550" width="360" height="90" class="card-panel" />
+  <rect x="435" y="565" width="330" height="60" class="magenta-box" />
+  <text x="600" y="590" text-anchor="middle" class="node-text" fill="#db2777">5. 크리에이터 지갑 (Creator USDC ATA)</text>
+  <text x="600" y="612" text-anchor="middle" class="subtitle-text">USDC 커미션 0.1초 즉시 수령 (Solscan 온체인 기록)</text>
+</svg>

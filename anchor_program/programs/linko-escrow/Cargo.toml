@@ -1,0 +1,35 @@
+[package]
+name = "linko-escrow"
+version = "0.1.0"
+description = "Linko Escrow Program on Solana"
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "linko_escrow"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { version = "1.1.2", features = ["init-if-needed"] }
+anchor-spl = { version = "1.1.2", features = ["associated_token"] }
+
+[dev-dependencies]
+litesvm = "0.15.1"
+solana-message = "4.4.0"
+solana-transaction = { version = "4.1.5", features = ["wincode"] }
+solana-signer = "3.0.1"
+solana-keypair = "3.1.2"
+litesvm-token = "0.15.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

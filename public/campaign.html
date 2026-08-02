@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>캠페인 상세 — Linko</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="mark">L</span> Linko</div>
+    <nav class="nav-links">
+      <a href="/index.html">캠페인 둘러보기</a>
+    </nav>
+    <nav class="nav-links role-links">
+      <a href="/advertiser-dashboard.html">광고주</a>
+      <a href="/promoter-dashboard.html">크리에이터</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap" style="max-width:820px;">
+    <div class="breadcrumb"><a href="/index.html">캠페인</a> / <span id="crumbTitle"></span></div>
+
+    <div id="content"></div>
+
+    <div class="panel">
+      <h2>이 캠페인 홍보하기</h2>
+      <p style="color:var(--muted); font-size:13.5px; margin-top:-8px;">광고 진행하기를 누르면 나만의 추천 링크가 발급돼요. 이 링크로 판매가 확정될 때마다 리워드가 자동 정산됩니다.</p>
+
+      <button class="pill-btn" id="participateBtn">광고 진행하기</button>
+    </div>
+  </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/campaign.js"></script>
+<script src="/js/agent-chat.js"></script>
+</body>
+</html>

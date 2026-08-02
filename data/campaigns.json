@@ -1,0 +1,389 @@
+[
+  {
+    "id": "c1",
+    "advertiser": "선데이글로우",
+    "product": "무기자차 선크림 SPF50+",
+    "description": "자극 없는 무기자차 선크림, 여름철 데일리 자외선 차단",
+    "productUrl": "https://sundayglow-mall.com/products/mineral-suncream-spf50",
+    "thumbnail": "/images/campaigns/suncream.svg",
+    "tags": [
+      "스킨케어",
+      "여름",
+      "자외선차단"
+    ],
+    "price": 28000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": 30,
+        "rate": 0.15
+      },
+      {
+        "minSales": 31,
+        "maxSales": null,
+        "rate": 0.2
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 1500000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "c2",
+    "advertiser": "선데이글로우",
+    "product": "비타민C 브라이트닝 세럼",
+    "description": "칙칙한 피부톤을 맑게 밝혀주는 고농축 비타민C 세럼",
+    "productUrl": "https://sundayglow-mall.com/products/vitaminc-brightening-serum",
+    "thumbnail": "/images/campaigns/serum.svg",
+    "tags": [
+      "스킨케어",
+      "세럼",
+      "브라이트닝"
+    ],
+    "price": 35000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 8,
+        "rate": 0.1
+      },
+      {
+        "minSales": 9,
+        "maxSales": 20,
+        "rate": 0.15
+      },
+      {
+        "minSales": 21,
+        "maxSales": null,
+        "rate": 0.2
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 3000000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "c3",
+    "advertiser": "선데이글로우",
+    "product": "판테놀 저자극 수분크림",
+    "description": "민감성 피부도 편안하게, 판테놀 함유 고보습 수분크림",
+    "productUrl": "https://sundayglow-mall.com/products/panthenol-moisture-cream",
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "tags": [
+      "스킨케어",
+      "수분크림",
+      "저자극"
+    ],
+    "price": 32000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.08
+      },
+      {
+        "minSales": 11,
+        "maxSales": 25,
+        "rate": 0.12
+      },
+      {
+        "minSales": 26,
+        "maxSales": null,
+        "rate": 0.16
+      }
+    ],
+    "confirmDelayDays": 6,
+    "budgetKrw": 2000000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "c4",
+    "advertiser": "선데이글로우",
+    "product": "티트리 진정 클렌징폼",
+    "description": "트러블 피부를 진정시켜주는 약산성 티트리 클렌징폼",
+    "productUrl": "https://sundayglow-mall.com/products/tea-tree-cleansing-foam",
+    "thumbnail": "/images/campaigns/cleansing.svg",
+    "tags": [
+      "스킨케어",
+      "클렌징",
+      "트러블케어"
+    ],
+    "price": 19000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 15,
+        "rate": 0.08
+      },
+      {
+        "minSales": 16,
+        "maxSales": 40,
+        "rate": 0.12
+      },
+      {
+        "minSales": 41,
+        "maxSales": null,
+        "rate": 0.16
+      }
+    ],
+    "confirmDelayDays": 5,
+    "budgetKrw": 1000000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "c5",
+    "advertiser": "선데이글로우",
+    "product": "콜라겐 안티에이징 아이크림",
+    "description": "탄력 있는 눈가를 위한 저분자 콜라겐 안티에이징 아이크림",
+    "productUrl": "https://sundayglow-mall.com/products/collagen-anti-aging-eye-cream",
+    "thumbnail": "/images/campaigns/eyecream.svg",
+    "tags": [
+      "스킨케어",
+      "아이크림",
+      "안티에이징"
+    ],
+    "price": 42000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 6,
+        "rate": 0.1
+      },
+      {
+        "minSales": 7,
+        "maxSales": 15,
+        "rate": 0.15
+      },
+      {
+        "minSales": 16,
+        "maxSales": null,
+        "rate": 0.22
+      }
+    ],
+    "confirmDelayDays": 10,
+    "budgetKrw": 5000000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "c6",
+    "advertiser": "농심",
+    "product": "신라면 볶음면 멀티팩 (5입)",
+    "description": "간편하게 즐기는 볶음면, 멀티팩 구성",
+    "productUrl": "https://nongshim-mall.com/goods/view?no=1029384",
+    "thumbnail": "/images/campaigns/ramen.svg",
+    "tags": [
+      "식품",
+      "라면",
+      "간편식"
+    ],
+    "price": 12900,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 20,
+        "rate": 0.08
+      },
+      {
+        "minSales": 21,
+        "maxSales": null,
+        "rate": 0.12
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 1200000,
+    "shopId": "nongshim-mall",
+    "status": "active"
+  },
+  {
+    "id": "c7",
+    "advertiser": "LG전자",
+    "product": "무선 이어폰 톤프리",
+    "description": "오픈형 무선 블루투스 이어폰",
+    "productUrl": "https://lge-mall.com/product/tonefree-earbuds",
+    "thumbnail": "/images/campaigns/earbuds.svg",
+    "tags": [
+      "전자기기",
+      "이어폰",
+      "블루투스"
+    ],
+    "price": 199000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 5,
+        "rate": 0.05
+      },
+      {
+        "minSales": 6,
+        "maxSales": 15,
+        "rate": 0.08
+      },
+      {
+        "minSales": 16,
+        "maxSales": null,
+        "rate": 0.12
+      }
+    ],
+    "confirmDelayDays": 10,
+    "budgetKrw": 4000000,
+    "shopId": "lge-mall",
+    "status": "active"
+  },
+  {
+    "id": "c8",
+    "advertiser": "프레시밀",
+    "product": "저속노화 샐러드 정기구독 (4주)",
+    "description": "매일 아침 신선하게 배송되는 저속노화 샐러드 밀키트",
+    "productUrl": "https://freshmeal.co.kr/products/salad-subscription-4week",
+    "thumbnail": "/images/campaigns/saladkit.svg",
+    "tags": [
+      "식품",
+      "밀키트",
+      "다이어트"
+    ],
+    "price": 89000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 8,
+        "rate": 0.1
+      },
+      {
+        "minSales": 9,
+        "maxSales": 20,
+        "rate": 0.14
+      },
+      {
+        "minSales": 21,
+        "maxSales": null,
+        "rate": 0.18
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 1800000,
+    "shopId": "nongshim-mall",
+    "status": "active"
+  },
+  {
+    "id": "c9",
+    "advertiser": "테크메이트",
+    "product": "맥세이프 고속 보조배터리 10000mAh",
+    "description": "아이폰 전용 자석 고속충전 보조배터리",
+    "productUrl": "https://techmate.store/products/magsafe-powerbank-10000",
+    "thumbnail": "/images/campaigns/powerbank.svg",
+    "tags": [
+      "전자기기",
+      "액세서리",
+      "충전"
+    ],
+    "price": 49000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.08
+      },
+      {
+        "minSales": 11,
+        "maxSales": 25,
+        "rate": 0.12
+      },
+      {
+        "minSales": 26,
+        "maxSales": null,
+        "rate": 0.16
+      }
+    ],
+    "confirmDelayDays": 5,
+    "budgetKrw": 1500000,
+    "shopId": "lge-mall",
+    "status": "active"
+  },
+  {
+    "id": "2779a3db-05c7-4176-a34b-71aee5af56fe",
+    "advertiser": "선데이글로우",
+    "product": "저자극 어성초 진정 토너",
+    "description": "예민한 피부를 진정시켜주는 어성초 추출물 함유 저자극 토너",
+    "productUrl": "https://sundayglow-mall.com/products/houttuynia-soothing-toner",
+    "guideline": "실사용 후기 위주로 작성해주세요. 자극 없다는 표현은 임상 결과 기반으로만 사용 가능합니다.",
+    "tags": [
+      "스킨케어",
+      "토너",
+      "진정"
+    ],
+    "price": 26000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": 30,
+        "rate": 0.15
+      },
+      {
+        "minSales": 31,
+        "maxSales": null,
+        "rate": 0.2
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 2000000,
+    "shopId": "sundayglow-mall",
+    "status": "active"
+  },
+  {
+    "id": "7d040966-e625-47b7-abe4-1478ad575294",
+    "advertiser": "선데이글로우",
+    "product": "v2저자극 어성초 진정 토너",
+    "description": "erwerewr",
+    "productUrl": "https://sundayglow-mall.com/products/houttuynia-soothing-toner",
+    "guideline": "werwerwe",
+    "tags": [
+      "스킨케어",
+      "토너",
+      "진정"
+    ],
+    "price": 40000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 20,
+    "budgetKrw": 1000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "nongshim-mall",
+    "status": "active"
+  }
+]

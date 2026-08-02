@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>광고주 대시보드 — Linko</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="mark">L</span> Linko</div>
+    <nav class="nav-links">
+      <a href="/advertiser-register.html">캠페인 등록</a>
+    </nav>
+    <nav class="nav-links role-links">
+      <a href="/advertiser-dashboard.html" class="active">광고주</a>
+      <a href="/promoter-dashboard.html">크리에이터</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap">
+    <div class="page-head">
+      <h1>광고주 대시보드</h1>
+      <p>내가 등록한 캠페인들의 판매 성과와 정산 현황이에요.</p>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="panel">
+      <h2>캠페인별 현황</h2>
+      <p style="color:var(--muted); font-size:13px; margin-top:-10px;">캠페인을 클릭하면 상세 현황을 볼 수 있어요.</p>
+      <table id="campaignTable">
+        <thead><tr><th>캠페인</th><th>예산</th><th>집행</th><th>잔여</th><th>정산완료</th><th>확정대기</th><th>취소</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/advertiser-dashboard.js"></script>
+<script src="/js/agent-chat.js"></script>
+</body>
+</html>

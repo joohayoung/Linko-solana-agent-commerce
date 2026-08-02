@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Linko — 판매된 만큼 바로 정산받는 광고</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="mark">L</span> Linko</div>
+    <nav class="nav-links">
+      <a href="/index.html" class="active">캠페인 둘러보기</a>
+    </nav>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" placeholder="예: 여름철 피부관리 제품 찾아줘" />
+    </div>
+    <button class="pill-btn ghost" id="searchBtn">AI 검색</button>
+    <nav class="nav-links role-links">
+      <a href="/advertiser-dashboard.html">광고주</a>
+      <a href="/promoter-dashboard.html">크리에이터</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap">
+    <div class="page-head">
+      <h1>지금 진행 중인 캠페인</h1>
+      <p>팔로워 수 상관없이 누구나 참여해서, 판매가 확정되면 즉시 USDC로 정산받아요.</p>
+    </div>
+
+    <div id="searchNote" style="display:none; margin-bottom:16px; font-size:13.5px; color:var(--muted);"></div>
+
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty-state" style="display:none;">캠페인이 없습니다.</div>
+  </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/index.js"></script>
+<script src="/js/agent-chat.js"></script>
+</body>
+</html>

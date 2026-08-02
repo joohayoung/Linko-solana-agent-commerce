@@ -1,0 +1,29 @@
+{
+  "name": "linko",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen-wallets": "node scripts/01-generate-wallets.mjs",
+    "airdrop": "node scripts/02-airdrop-sol.mjs",
+    "fund": "node scripts/02b-fund-from-settlement.mjs",
+    "create-atas": "node scripts/03-create-atas.mjs",
+    "test-settlement": "node scripts/04-test-settlement.mjs",
+    "test-gemini": "node --env-file=.env scripts/05-test-gemini.mjs",
+    "mock-shops": "node scripts/06-mock-shops-server.mjs",
+    "checkout": "node scripts/07-create-test-order.mjs",
+    "settle": "node --env-file=.env scripts/08-run-settlement.mjs",
+    "trigger": "node scripts/09-shop-trigger.mjs",
+    "start": "node --env-file=.env server.mjs"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/pay": "^0.2.5",
+    "bignumber.js": "^9.1.2",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "*"
+  }
+}
