@@ -21,8 +21,9 @@ export const VAULT_SEED = Buffer.from("vault");
  * 캠페인 PDA 및 Vault PDA 주소 계산
  */
 export function getCampaignPda(advertiserPubkey, campaignId) {
+  const safeId = String(campaignId).slice(0, 32);
   const [campaignPda, campaignBump] = PublicKey.findProgramAddressSync(
-    [CAMPAIGN_SEED, advertiserPubkey.toBuffer(), Buffer.from(campaignId)],
+    [CAMPAIGN_SEED, advertiserPubkey.toBuffer(), Buffer.from(safeId)],
     ESCROW_PROGRAM_ID
   );
 
@@ -54,8 +55,8 @@ export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.set
 
   const disc = await getDiscriminator("create_campaign");
   
-  // Args 인코딩: campaign_id (String: 4bytes len + utf8) + budget_usdc (u64: 8bytes le)
-  const campaignIdBuf = Buffer.from(campaignId, "utf8");
+  const safeId = String(campaignId).slice(0, 32);
+  const campaignIdBuf = Buffer.from(safeId, "utf8");
   const lenBuf = Buffer.alloc(4);
   lenBuf.writeUInt32LE(campaignIdBuf.length, 0);
 

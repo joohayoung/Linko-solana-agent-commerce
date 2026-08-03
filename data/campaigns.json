@@ -418,5 +418,39 @@
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "lge-mall",
     "status": "active"
+  },
+  {
+    "id": "71e387a4-1b63-4652-96f0-251c8870a1cf",
+    "advertiser": "선데이글로우",
+    "product": "PDRN 리프팅 탄력 샷 앰플",
+    "description": "모공 케어와 탄력 리프팅을 동시에 케어하는 고농축 PDRN 스피큘 앰플",
+    "productUrl": "https://sundayglow-mall.com/products/pdrn-lifting-ampoule",
+    "guideline": "나이트 스킨케어 모공 리프팅 후기 위주로 작성해 주세요. \"PDRN 탄력 샷\" 문구와 본인 전용 추천 링크를 꼭 포함해 주세요.",
+    "tags": [
+      "스킨케어",
+      "앰플",
+      "탄력",
+      "리프팅",
+      "모공"
+    ],
+    "price": 45000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.2
+      }
+    ],
+    "confirmDelayDays": 10,
+    "budgetKrw": 2000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "sundayglow-mall",
+    "status": "active"
   }
 ]

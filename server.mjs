@@ -161,7 +161,7 @@ async function handleApi(req, res, url, parts) {
       return sendJson(res, 400, { error: "advertiser, product, price, commissionTiers는 필수입니다." });
     }
     const campaign = insert("campaigns", {
-      id: uuidv4(),
+      id: `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`,
       advertiser: body.advertiser,
       product: body.product,
       description: body.description || "",

@@ -62,5 +62,21 @@
     "referralCode": "지수-V2저자극어성초진정",
     "clicks": 0,
     "joinedAt": "2026-08-02T15:48:54.498Z"
+  },
+  {
+    "id": "19dbd089-d178-4700-9d3c-da758d19052d",
+    "promoterId": "promoter-jisu",
+    "campaignId": "b5ff8183-e51c-45eb-ac37-d06e79755d5e",
+    "referralCode": "지수-히알루론산수분쿨링마",
+    "clicks": 0,
+    "joinedAt": "2026-08-03T01:10:34.134Z"
+  },
+  {
+    "id": "690b55c7-cd88-4162-900a-08fe08bf3759",
+    "promoterId": "promoter-jisu",
+    "campaignId": "71e387a4-1b63-4652-96f0-251c8870a1cf",
+    "referralCode": "지수-PDRN리프팅탄력샷",
+    "clicks": 0,
+    "joinedAt": "2026-08-03T01:17:57.365Z"
   }
 ]
