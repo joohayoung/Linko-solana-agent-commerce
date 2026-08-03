@@ -528,8 +528,14 @@ function handleLocalFallback(userMessage, role, history) {
         `💡 구매확정 대기기간이 지나면 Solana Pay / 온체인 에스크로를 통해 USDC로 지갑에 즉시 정산됩니다!`;
     }
   }
-  // 3. 캠페인 추천 / 검색 (마스크팩, 쿨링, 선크림, 다이어트, 화장품 등 전 품목)
-  else if (msg.includes("추천") || msg.includes("찾아") || msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("제품") || msg.includes("마스크") || msg.includes("쿨링") || msg.includes("화장품")) {
+  // 3. 캠페인 추천 / 검색 (마스크팩, 히알루론산, 쿨링, 선크림, 다이어트, 화장품 등 전 품목)
+  else if (
+    msg.includes("추천") || msg.includes("찾아") || msg.includes("알려") || 
+    msg.includes("검색") || msg.includes("캠페인") || msg.includes("제품") || 
+    msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || 
+    msg.includes("마스크") || msg.includes("쿨링") || msg.includes("화장품") ||
+    msg.includes("토너") || msg.includes("세럼") || msg.includes("크림") || msg.includes("히알루론산")
+  ) {
     const allActive = readAll("campaigns").filter(c => c.status === "active");
     
     // 질의어에서 불필요한 조사/어미 제거 후 키워드 추출

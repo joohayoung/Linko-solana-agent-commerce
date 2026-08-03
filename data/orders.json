@@ -579,13 +579,13 @@
     "referralCode": "지수-PDRN리프팅탄력샷",
     "promoterId": "promoter-jisu",
     "amount": 45000,
-    "status": "purchased",
+    "status": "settled",
     "purchasedAt": "2026-08-03T01:18:06.673Z",
     "confirmDueAt": "2026-08-03T01:18:25.208Z",
-    "settledAt": null,
-    "settlementTx": null,
-    "commissionRateApplied": null,
-    "commissionAmountUsdc": null
+    "settledAt": "2026-08-03T01:23:12.029Z",
+    "settlementTx": "3FaZBxfC34EK2A8YuicEp1Tcqc8Xwem9TcpSbhNCSSGvdzQcy1nHKWTJ8QEh1UskwmVYQyRnVJH2cyqKehyfJXw6",
+    "commissionRateApplied": 0.1,
+    "commissionAmountUsdc": 3.21
   },
   {
     "id": "f57bd52a-49b5-4c59-a41a-ff39f02678b8",
@@ -593,13 +593,13 @@
     "referralCode": "지수-PDRN리프팅탄력샷",
     "promoterId": "promoter-jisu",
     "amount": 45000,
-    "status": "purchased",
+    "status": "settled",
     "purchasedAt": "2026-08-03T01:18:06.677Z",
     "confirmDueAt": "2026-08-03T01:18:26.161Z",
-    "settledAt": null,
-    "settlementTx": null,
-    "commissionRateApplied": null,
-    "commissionAmountUsdc": null
+    "settledAt": "2026-08-03T01:23:15.262Z",
+    "settlementTx": "3r7EvrcivD3c3zWPGAXrTJWYwvM6BRQp6CDfgoDeoMiM91YXaidzJtoukYFg2c1UkdXFUdoXJcMfHiwAg4eqdWuf",
+    "commissionRateApplied": 0.1,
+    "commissionAmountUsdc": 3.21
   },
   {
     "id": "1773c9c4-1c7f-42bd-aab3-8f5556842b27",
