@@ -39,14 +39,14 @@ function render(c) {
     </div>
 
     <div class="panel">
-      <h2>누적 확정판매 건수에 따른 리워드 요율</h2>
+      <h2>누적 확정판매 건수에 따른 리워드 비율</h2>
       <table>
-        <thead><tr><th>누적 확정 건수</th><th>리워드 요율</th><th>건당 리워드</th></tr></thead>
+        <thead><tr><th>누적 확정 건수</th><th>리워드 비율</th><th>건당 리워드</th></tr></thead>
         <tbody>${tiersHtml}</tbody>
       </table>
       <p style="font-size:12.5px; color:var(--muted); margin:14px 0 0;">
         구매확정 후 <b>${c.confirmDelayDays}일</b> 확정대기기간이 지나 취소가 없어야 정산됩니다 (부정사용 방지).
-        요율은 정산 시점의 내 누적 확정 건수 기준으로 결정돼요.
+        비율은 정산 시점의 내 누적 확정 건수 기준으로 결정돼요.
       </p>
     </div>
 

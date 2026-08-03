@@ -502,13 +502,13 @@ function handleLocalFallback(userMessage, role, history) {
     const c = campaigns[0] || executeToolCall("get_campaigns", {})[0];
     
     if (c) {
-      const tiersStr = c.commissionTiers.map((t) => `  - **${t.range}**: 요율 **${t.rate}** (건당 ${t.rewardPerSale})`).join("\n");
-      reply = `📊 **[${c.advertiser}] ${c.product} 캠페인 현황 및 요율 구조**\n\n` +
+      const tiersStr = c.commissionTiers.map((t) => `  - **${t.range}**: 비율 **${t.rate}** (건당 ${t.rewardPerSale})`).join("\n");
+      reply = `📊 **[${c.advertiser}] ${c.product} 캠페인 현황 및 비율 구조**\n\n` +
         `• **상품 가격**: ${c.priceFormatted}\n` +
         `• **총 집행 예산**: ${c.budgetKrw.toLocaleString()}원 (USDC 온체인 에스크로 Vault 보관)\n` +
         `• **확정대기기간**: ${c.confirmDelayDays}일 (부정 사용 방지)\n\n` +
-        `💰 **누적 확정 판매에 따른 리워드 요율 구조 (Tier)**:\n${tiersStr}\n\n` +
-        `💡 **안내**: 구매확정 후 ${c.confirmDelayDays}일 대기기간이 지난 주문에 대해 위 요율을 적용하여 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC가 자동 정산됩니다.`;
+        `💰 **누적 확정 판매에 따른 리워드 비율 구조 (Tier)**:\n${tiersStr}\n\n` +
+        `💡 **안내**: 구매확정 후 ${c.confirmDelayDays}일 대기기간이 지난 주문에 대해 위 비율을 적용하여 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC가 자동 정산됩니다.`;
     } else {
       reply = `등록된 캠페인 현황을 조회했습니다. 전체 예산 소진액과 잔여 예산은 광고주 대시보드에서 실시간으로 확인하실 수 있습니다.`;
     }
@@ -519,7 +519,7 @@ function handleLocalFallback(userMessage, role, history) {
     if (data.error) {
       reply = `크리에이터 실적 조회 중 오류가 발생했습니다: ${data.error}`;
     } else {
-      const listStr = data.participations.map((p, i) => `${i + 1}. **${p.product}** (확정: ${p.confirmedCount}건, 현재 요율: ${p.currentRate})`).join("\n");
+      const listStr = data.participations.map((p, i) => `${i + 1}. **${p.product}** (확정: ${p.confirmedCount}건, 현재 비율: ${p.currentRate})`).join("\n");
       reply = `지수님의 현재 실적 및 참여 캠페인 요약입니다! 😊\n\n` +
         `• **누적 정산 금액**: **${data.totalEarnedUsdc.toFixed(2)} USDC** (약 ${data.totalEarnedKrw.toLocaleString()}원)\n` +
         `• **정산 완료 건수**: ${data.totalSettledOrders}건 (확정 대기 중: ${data.totalPendingOrders}건)\n` +

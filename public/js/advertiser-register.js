@@ -16,7 +16,7 @@ function addTierRow(maxSales = "", rate = "") {
       <input type="number" placeholder="비우면 무제한" value="${maxSales}" data-field="maxSales" />
     </div>
     <div class="tier-field">
-      <label>리워드 요율 (%)</label>
+      <label>리워드 비율 (%)</label>
       <input type="number" placeholder="예: 10" value="${rate}" data-field="rate" />
     </div>
     <button type="button" class="pill-btn ghost" style="padding:8px 12px;" onclick="document.getElementById('${id}').remove(); recalcTierRanges();">삭제</button>
@@ -102,7 +102,7 @@ function updateEstimate() {
   const { units, spent } = estimateMaxUnits(price, tiers, budgetUsdcEquivalent);
   result.innerHTML = `
     현재 설정으로 예산 <b>${won(budgetKrw)}</b> 안에서 최대 <b>${units}개</b> 제품까지 리워드 지급이 가능해요.
-    <div class="sub">예상 소진액 약 ${won(Math.round(spent * krwPerUsdc))} (실제 정산은 ${spent.toFixed(2)} USDC로 온체인 지급, 요율은 판매량에 따라 구간별로 달라져요)</div>
+    <div class="sub">예상 소진액 약 ${won(Math.round(spent * krwPerUsdc))} (실제 정산은 ${spent.toFixed(2)} USDC로 온체인 지급, 비율은 판매량에 따라 구간별로 달라져요)</div>
   `;
 }
 
