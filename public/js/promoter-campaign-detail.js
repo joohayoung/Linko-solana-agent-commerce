@@ -43,7 +43,7 @@ function render(data) {
       <div class="stat-card"><div class="label">클릭수</div><div class="value">${data.stats.clicks}회</div></div>
       <div class="stat-card"><div class="label">구매건수</div><div class="value">${data.stats.purchaseCount}건</div></div>
       <div class="stat-card"><div class="label">확정건수</div><div class="value">${data.stats.confirmedCount}건</div></div>
-      <div class="stat-card"><div class="label">누적 정산액</div><div class="value small">${won(data.stats.cumulativeSettledKrw)}</div><div class="sub">현재 요율 ${pct(data.stats.currentRate)} · ${nextInfo}</div></div>
+      <div class="stat-card"><div class="label">누적 정산액</div><div class="value small">${won(data.stats.cumulativeSettledKrw)}</div><div class="sub">현재 비율 ${pct(data.stats.currentRate)} · ${nextInfo}</div></div>
     </div>
     <p style="color:var(--muted); font-size:12px; margin:-14px 0 22px;">실제 결제는 ${data.stats.cumulativeSettledUsdc.toFixed(2)} USDC로 온체인 지급돼요.</p>
 
@@ -68,7 +68,7 @@ function render(data) {
     <div class="panel">
       <h2>주문 내역</h2>
       <table id="orderTable">
-        <thead><tr><th>금액</th><th>상태</th><th>적용요율</th><th>리워드</th><th>정산 tx</th><th>시각</th></tr></thead>
+        <thead><tr><th>금액</th><th>상태</th><th>적용비율</th><th>리워드</th><th>정산 tx</th><th>시각</th></tr></thead>
         <tbody>${renderOrderRows(data.orders)}</tbody>
       </table>
       ${!data.orders.length ? `<div class="empty-state">아직 주문이 없어요. 오른쪽 아래 시뮬레이터로 구매를 발생시켜보세요.</div>` : ""}

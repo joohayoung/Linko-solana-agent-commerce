@@ -61,9 +61,9 @@ function render(data) {
     </div>
 
     <div class="panel">
-      <h2>누적 확정판매 건수에 따른 리워드 요율</h2>
+      <h2>누적 확정판매 건수에 따른 리워드 비율</h2>
       <table>
-        <thead><tr><th>누적 확정 건수</th><th>리워드 요율</th><th>건당 리워드</th></tr></thead>
+        <thead><tr><th>누적 확정 건수</th><th>리워드 비율</th><th>건당 리워드</th></tr></thead>
         <tbody>${tiersHtml}</tbody>
       </table>
       <p style="font-size:12.5px; color:var(--muted); margin:14px 0 0;">
