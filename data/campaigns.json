@@ -385,5 +385,38 @@
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "nongshim-mall",
     "status": "active"
+  },
+  {
+    "id": "b5ff8183-e51c-45eb-ac37-d06e79755d5e",
+    "advertiser": "선데이글로우",
+    "product": "히알루론산 수분 쿨링 마스크팩",
+    "description": "여름철 달아오른 피부를 즉각 쿨링 진정시키는 수분 앰플 마스크팩",
+    "productUrl": "https://sundayglow-mall.com/products/hyaluronic-cooling-mask",
+    "guideline": "야외활동 후 야간 스킨케어 꿀팁 위주로 인스타그램/릴스/블로그 홍보해주세요. \"즉각 쿨링 및 수분 보충\" 키워드와 추천 링크를 게시물에 꼭 포함해주세요",
+    "tags": [
+      "스킨케어",
+      "마스크팩",
+      "쿨링",
+      "수분"
+    ],
+    "price": 18000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 10,
+    "budgetKrw": 1000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "lge-mall",
+    "status": "active"
   }
 ]

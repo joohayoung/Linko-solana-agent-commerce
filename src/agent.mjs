@@ -528,23 +528,29 @@ function handleLocalFallback(userMessage, role, history) {
         `💡 구매확정 대기기간이 지나면 Solana Pay / 온체인 에스크로를 통해 USDC로 지갑에 즉시 정산됩니다!`;
     }
   }
-  // 3. 캠페인 추천 / 검색 (다이어트/식품/선크림/스킨케어 등)
-  else if (msg.includes("추천") || msg.includes("찾아") || msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("제품")) {
-    let searchQuery = "";
-    if (msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("닭가슴살")) {
-      searchQuery = "다이어트";
-    } else if (msg.includes("선크림")) {
-      searchQuery = "선크림";
-    }
+  // 3. 캠페인 추천 / 검색 (마스크팩, 쿨링, 선크림, 다이어트, 화장품 등 전 품목)
+  else if (msg.includes("추천") || msg.includes("찾아") || msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("제품") || msg.includes("마스크") || msg.includes("쿨링") || msg.includes("화장품")) {
+    const allActive = readAll("campaigns").filter(c => c.status === "active");
     
-    let campaigns = executeToolCall("get_campaigns", { query: searchQuery });
-    if (searchQuery === "다이어트" && (!campaigns.length || !campaigns.some(c => c.id === "c8"))) {
-      const allC = readAll("campaigns");
-      const dietC = allC.filter(c => c.id === "c8" || c.tags.includes("다이어트") || c.tags.includes("식품"));
-      campaigns = dietC.length ? dietC : campaigns;
+    // 질의어에서 불필요한 조사/어미 제거 후 키워드 추출
+    const keywords = msg
+      .replace(/(추천해줘|추천|찾아줘|찾아|관련|캠페인|제품|상품|있어|알려줘|해줘)/g, "")
+      .trim()
+      .split(/\s+/)
+      .filter(k => k.length >= 1);
+
+    let matched = [];
+    if (keywords.length > 0) {
+      matched = allActive.filter(c => {
+        const text = `${c.product} ${c.description} ${c.advertiser} ${c.tags.join(" ")}`.toLowerCase();
+        return keywords.some(k => text.includes(k.toLowerCase()));
+      });
     }
 
-    const top = campaigns.slice(0, 3);
+    // 매칭 결과가 없으면 전체 등록된 캠페인을 최신순(배열 역순)으로 상위 배치
+    const finalCampaigns = matched.length > 0 ? matched : [...allActive].reverse();
+    const top = finalCampaigns.slice(0, 3);
+
     const cList = top.map((c) => {
       let maxRateText = "15%";
       if (Array.isArray(c.commissionTiers) && c.commissionTiers.length > 0) {
@@ -555,8 +561,8 @@ function handleLocalFallback(userMessage, role, history) {
           maxRateText = Math.round(lastTier.rate * 100) + "%";
         }
       }
-      const priceText = c.priceFormatted || (c.price ? c.price.toLocaleString() + '원' : '가격 정보');
-      return `• **${c.product}** (${c.advertiser}) - ${priceText} (최대 ${maxRateText} 리워드)\n  [👉 광고 진행하기](/campaign.html?id=${c.id})`;
+      const priceText = `${c.price ? c.price.toLocaleString() + '원' : '가격 정보'}`;
+      return `• **${c.product}** (${c.advertiser}) - ${priceText} (최대 ${maxRateText} 리워드 비율)\n  [👉 광고 진행하기](/campaign.html?id=${c.id})`;
     }).join("\n\n");
 
     reply = `요청하신 조건에 딱 맞는 **추천 캠페인 목록**입니다! ☀️\n\n${cList}\n\n위 링크를 누르시면 해당 캠페인 상세 페이지로 바로 이동하여 상세 내용 확인 및 광고 참여를 진행하실 수 있습니다! 🚀`;
