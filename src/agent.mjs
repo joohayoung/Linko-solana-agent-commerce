@@ -528,12 +528,38 @@ function handleLocalFallback(userMessage, role, history) {
         `💡 구매확정 대기기간이 지나면 Solana Pay / 온체인 에스크로를 통해 USDC로 지갑에 즉시 정산됩니다!`;
     }
   }
-  // 3. 캠페인 추천 / 검색
-  else if (msg.includes("추천") || msg.includes("찾아")) {
-    const campaigns = executeToolCall("get_campaigns", { query: msg.includes("선크림") ? "선크림" : "" });
+  // 3. 캠페인 추천 / 검색 (다이어트/식품/선크림/스킨케어 등)
+  else if (msg.includes("추천") || msg.includes("찾아") || msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("제품")) {
+    let searchQuery = "";
+    if (msg.includes("다이어트") || msg.includes("식품") || msg.includes("샐러드") || msg.includes("닭가슴살")) {
+      searchQuery = "다이어트";
+    } else if (msg.includes("선크림")) {
+      searchQuery = "선크림";
+    }
+    
+    let campaigns = executeToolCall("get_campaigns", { query: searchQuery });
+    if (searchQuery === "다이어트" && (!campaigns.length || !campaigns.some(c => c.id === "c8"))) {
+      const allC = readAll("campaigns");
+      const dietC = allC.filter(c => c.id === "c8" || c.tags.includes("다이어트") || c.tags.includes("식품"));
+      campaigns = dietC.length ? dietC : campaigns;
+    }
+
     const top = campaigns.slice(0, 3);
-    const cList = top.map((c) => `• **${c.product}** (${c.advertiser}) - ${c.priceFormatted} (최대 ${c.commissionTiers[c.commissionTiers.length - 1].rate} 리워드)`).join("\n");
-    reply = `추천 캠페인 목록입니다! ☀️\n\n${cList}\n\n상세 정보나 광고 문구 생성이 필요하시면 언제든 말씀해 주세요!`;
+    const cList = top.map((c) => {
+      let maxRateText = "15%";
+      if (Array.isArray(c.commissionTiers) && c.commissionTiers.length > 0) {
+        const lastTier = c.commissionTiers[c.commissionTiers.length - 1];
+        if (typeof lastTier.rate === "string") {
+          maxRateText = lastTier.rate;
+        } else if (typeof lastTier.rate === "number") {
+          maxRateText = Math.round(lastTier.rate * 100) + "%";
+        }
+      }
+      const priceText = c.priceFormatted || (c.price ? c.price.toLocaleString() + '원' : '가격 정보');
+      return `• **${c.product}** (${c.advertiser}) - ${priceText} (최대 ${maxRateText} 리워드)\n  [👉 광고 진행하기](/campaign.html?id=${c.id})`;
+    }).join("\n\n");
+
+    reply = `요청하신 조건에 딱 맞는 **추천 캠페인 목록**입니다! ☀️\n\n${cList}\n\n위 링크를 누르시면 해당 캠페인 상세 페이지로 바로 이동하여 상세 내용 확인 및 광고 참여를 진행하실 수 있습니다! 🚀`;
   }
   // 4. 광고 문구 작성
   else if (msg.includes("문구") || msg.includes("광고")) {

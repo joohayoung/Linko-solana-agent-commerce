@@ -122,9 +122,10 @@
     if (el) el.remove();
   }
 
-  // 간단한 마크다운 → HTML 변환
+  // 간단한 마크다운 → HTML 변환 (링크 파싱 포함)
   function formatAiText(text) {
     return text
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="display:inline-block; margin-top:4px; font-weight:bold; color:var(--primary); text-decoration:underline;">$1 ↗</a>')
       .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
       .replace(/\*(.*?)\*/g, "<em>$1</em>")
       .replace(/`(.*?)`/g, "<code>$1</code>")
