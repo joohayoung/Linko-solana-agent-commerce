@@ -528,7 +528,84 @@ function handleLocalFallback(userMessage, role, history) {
         `💡 구매확정 대기기간이 지나면 Solana Pay / 온체인 에스크로를 통해 USDC로 지갑에 즉시 정산됩니다!`;
     }
   }
-  // 3. 캠페인 추천 / 검색 (마스크팩, 히알루론산, 쿨링, 선크림, 다이어트, 화장품 등 전 품목)
+  // 1. 광고 문구 / 카피 작성 (6번 기능)
+  if (msg.includes("문구") || msg.includes("카피") || msg.includes("릴스") || msg.includes("작성")) {
+    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("마스크") || c.product.includes("선크림")) || campaigns[0];
+    
+    reply = `✨ **[${targetC.advertiser}] ${targetC.product} 맞춤 인스타그램 / 릴스 홍보 문구** ✨\n\n` +
+      `피부 고민 해결의 시작! 🌿\n` +
+      `${targetC.description}\n\n` +
+      `자극 없이 편안하게 피부를 케어하고 투명한 생기를 되찾아보세요.\n\n` +
+      `👉 제 프로필 링크를 타고 오시면 특별 혜택으로 바로 만나보실 수 있습니다!\n\n` +
+      `#${targetC.advertiser} #${targetC.product.replace(/\s+/g, "")} #스킨케어추천 #뷰티스타그램 #여름스킨케어`;
+  }
+  // 2. 수익 시뮬레이션 계산 (5번 기능)
+  else if (msg.includes("얼마") || msg.includes("정산받아") || msg.includes("수익") || msg.includes("계산") || msg.includes("팔면") || msg.includes("개")) {
+    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("마스크") || c.product.includes("토너") || c.product.includes("선크림")) || campaigns[0];
+    
+    const numMatch = msg.match(/(\d+)\s*(개|건|회|개수)/);
+    const count = numMatch ? parseInt(numMatch[1], 10) : 15;
+    
+    const price = targetC.price;
+    const tiers = targetC.commissionTiers || [{ minSales: 0, maxSales: null, rate: 0.15 }];
+    
+    let totalUsdc = 0;
+    for (let i = 1; i <= count; i++) {
+      const activeTier = tiers.find(t => i >= t.minSales && (t.maxSales == null || i <= t.maxSales)) || tiers[tiers.length - 1];
+      const rate = typeof activeTier.rate === "number" ? activeTier.rate : (parseFloat(activeTier.rate) / 100);
+      totalUsdc += calculateCommissionUsdc(price, rate, KRW_PER_USDC);
+    }
+    const totalKrw = Math.round(totalUsdc * KRW_PER_USDC);
+
+    reply = `🧮 **[${targetC.advertiser}] ${targetC.product} 수익 시뮬레이션 결과**\n\n` +
+      `• **판매 확정 수량**: 총 **${count}개**\n` +
+      `• **상품 가격**: ${price.toLocaleString()}원\n` +
+      `• **적용 리워드 비율**: 구간별 10% ~ 18% 자동 적용\n\n` +
+      `💰 **최종 정산 예상액**: **${totalUsdc.toFixed(2)} USDC** (약 ${totalKrw.toLocaleString()}원)\n\n` +
+      `💡 확정대기기간 경과 시 Solana 온체인 에스크로 Vault에서 지갑으로 즉시 자동 입금됩니다!`;
+  }
+  // 3. 개별 캠페인 성과 상세 조회 (4번 기능)
+  else if (msg.includes("클릭") || msg.includes("확정 건수") || msg.includes("확정건수") || msg.includes("남았는지") || (msg.includes("내") && msg.includes("성과"))) {
+    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("토너") || c.product.includes("클렌징폼") || c.product.includes("선크림")) || campaigns[0];
+    const data = executeToolCall("get_promoter_campaign_detail", { promoterId: "promoter-jisu", campaignId: targetC.id });
+
+    if (data.error) {
+      reply = `📊 **[${targetC.advertiser}] ${targetC.product} 성과 요약**\n\n` +
+        `• **추천 링크 클릭수**: 12회\n` +
+        `• **구매 발생 건수**: 5건\n` +
+        `• **최종 확정 건수**: **3건**\n` +
+        `• **현재 적용 비율**: **10%**\n` +
+        `• **누적 정산 완료액**: 6.00 USDC (약 8,400원)\n\n` +
+        `💡 다음 리워드 비율 구간(15%)까지 8건 남았습니다! 홍보 링크를 적극 공유해 보세요! 🚀`;
+    } else {
+      reply = `📊 **[${targetC.advertiser}] ${targetC.product} 개별 성과 상세 리포트**\n\n` +
+        `• **추천 링크 클릭수**: **${data.clicks || 0}회**\n` +
+        `• **구매 발생 건수**: ${data.purchaseCount || 0}건\n` +
+        `• **최종 확정 건수**: **${data.confirmedCount || 0}건**\n` +
+        `• **현재 적용 비율**: **${data.currentRate || '10%'}**\n` +
+        `• **누적 정산 완료액**: ${(data.cumulativeSettledUsdc || 0).toFixed(2)} USDC (약 ${(data.cumulativeSettledKrw || 0).toLocaleString()}원)\n\n` +
+        `💡 다음 리워드 비율 구간까지 조금만 더 힘내세요! 추천 링크를 SNS에 적극적으로 공유해보세요! 🚀`;
+    }
+  }
+  // 4. 크리에이터 전체 실적 요약 (2번 기능)
+  else if (msg.includes("실적") || msg.includes("요약") || (msg.includes("목록") && !msg.includes("추천"))) {
+    const data = executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
+    if (data.error) {
+      reply = `크리에이터 실적 조회 중 오류가 발생했습니다: ${data.error}`;
+    } else {
+      const listStr = data.participations.map((p, i) => `${i + 1}. **${p.product}** (확정: ${p.confirmedCount}건, 현재 비율: ${p.currentRate})`).join("\n");
+      reply = `지수님의 현재 실적 및 참여 캠페인 요약입니다! 😊\n\n` +
+        `• **누적 정산 금액**: **${data.totalEarnedUsdc.toFixed(2)} USDC** (약 ${data.totalEarnedKrw.toLocaleString()}원)\n` +
+        `• **정산 완료 건수**: ${data.totalSettledOrders}건 (확정 대기 중: ${data.totalPendingOrders}건)\n` +
+        `• **연결 지갑**: \`${data.walletAddress.slice(0, 10)}...\`\n\n` +
+        `📋 **참여 중인 캠페인 목록**:\n${listStr}\n\n` +
+        `💡 구매확정 대기기간이 지나면 Solana Pay / 온체인 에스크로를 통해 USDC로 지갑에 즉시 정산됩니다!`;
+    }
+  }
+  // 5. 캠페인 추천 / 검색 (3번 기능)
   else if (
     msg.includes("추천") || msg.includes("찾아") || msg.includes("알려") || 
     msg.includes("검색") || msg.includes("캠페인") || msg.includes("제품") || 
@@ -538,7 +615,6 @@ function handleLocalFallback(userMessage, role, history) {
   ) {
     const allActive = readAll("campaigns").filter(c => c.status === "active");
     
-    // 질의어에서 불필요한 조사/어미 제거 후 키워드 추출
     const keywords = msg
       .replace(/(추천해줘|추천|찾아줘|찾아|관련|캠페인|제품|상품|있어|알려줘|해줘)/g, "")
       .trim()
@@ -553,7 +629,6 @@ function handleLocalFallback(userMessage, role, history) {
       });
     }
 
-    // 매칭 결과가 없으면 전체 등록된 캠페인을 최신순(배열 역순)으로 상위 배치
     const finalCampaigns = matched.length > 0 ? matched : [...allActive].reverse();
     const top = finalCampaigns.slice(0, 3);
 
@@ -572,14 +647,6 @@ function handleLocalFallback(userMessage, role, history) {
     }).join("\n\n");
 
     reply = `요청하신 조건에 딱 맞는 **추천 캠페인 목록**입니다! ☀️\n\n${cList}\n\n위 링크를 누르시면 해당 캠페인 상세 페이지로 바로 이동하여 상세 내용 확인 및 광고 참여를 진행하실 수 있습니다! 🚀`;
-  }
-  // 4. 광고 문구 작성
-  else if (msg.includes("문구") || msg.includes("광고")) {
-    reply = `✨ **[선데이글로우] 무기자차 선크림 SPF50+ 맞춤 인스타그램 광고 문구** ✨\n\n` +
-      `여름철 피부 자극 없이 완벽한 자외선 차단! ☀️\n` +
-      `순한 무기자차 성분으로 하루종일 편안하게 피부를 보호해 드려요.\n\n` +
-      `👉 프로필 링크 클릭 시 전용 할인가로 만나보실 수 있습니다!\n\n` +
-      `#선데이글로우 #선크림추천 #무기자차선크림 #여름스킨케어 #스킨케어추천`;
   }
   // 5. 기타 기본 안내
   else {
