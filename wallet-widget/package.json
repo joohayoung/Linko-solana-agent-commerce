@@ -1,0 +1,22 @@
+{
+  "name": "linko-wallet-widget",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LazorKit(Passkey/Gasless) 지갑 연결 위젯 — 빌드 결과물을 ../public/js/wallet-widget.js 로 출력해 기존 순수 HTML 페이지에 <script> 태그로 삽입해서 씁니다. (메인 앱은 React/번들러가 없는 구조라 이 위젯만 별도로 빌드합니다)",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@lazorkit/wallet": "^2.0.1",
+    "@solana/web3.js": "^1.95.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11",
+    "vite-plugin-node-polyfills": "^0.22.0"
+  }
+}

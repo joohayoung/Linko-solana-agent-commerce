@@ -1,5 +1,3 @@
-const PROMOTER_ID = "promoter-jisu"; // 데모: 크리에이터는 지수로 고정
-
 async function loadDashboard(promoterId) {
   try {
     const data = await api(`/api/promoters/${promoterId}/dashboard`);
@@ -20,6 +18,20 @@ function renderStats(data) {
     <div class="stat-card"><div class="label">확정 판매</div><div class="value">${settledCount}건</div></div>
     <div class="stat-card"><div class="label">누적 정산액</div><div class="value small">${won(data.totalEarnedKrw)}</div><div class="sub">실제 ${data.totalEarnedUsdc.toFixed(2)} USDC 온체인 지급</div></div>
   `;
+  const pageHead = document.querySelector(".page-head");
+  if (pageHead && !document.getElementById("switchAccountLink")) {
+    const link = document.createElement("a");
+    link.id = "switchAccountLink";
+    link.href = "#";
+    link.style.cssText = "font-size:12.5px; color:var(--muted); text-decoration:underline;";
+    link.textContent = "다른 지갑으로 전환";
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      linkoClearSession();
+      location.reload();
+    });
+    pageHead.appendChild(link);
+  }
 }
 
 function renderParticipations(rows) {
@@ -69,4 +81,4 @@ function renderOrders(orders) {
     .join("");
 }
 
-loadDashboard(PROMOTER_ID);
+linkoRequirePromoterSession(loadDashboard);

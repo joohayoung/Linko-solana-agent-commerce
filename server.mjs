@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { v4 as uuidv4 } from "uuid";
+import { PublicKey } from "@solana/web3.js";
 
 import { readAll, findById, findWhere, insert, update } from "./src/db.mjs";
 import { processOrder } from "./src/settlementEngine.mjs";
@@ -306,6 +307,36 @@ async function handleApi(req, res, url, parts) {
   // GET /api/promoters
   if (method === "GET" && parts.length === 1 && parts[0] === "promoters") {
     return sendJson(res, 200, { promoters: readAll("promoters") });
+  }
+
+  // POST /api/promoters/by-wallet — LazorKit 패스키로 연결된 지갑 주소로 프로모터를 찾거나 신규 생성
+  // (2단계: 수동 지갑주소 입력 대신 프론트에서 지갑 연결 직후 이 API를 호출해서 세션을 만듭니다)
+  if (method === "POST" && parts.length === 2 && parts[0] === "promoters" && parts[1] === "by-wallet") {
+    const body = await readBody(req);
+    const walletAddress = (body.walletAddress || "").trim();
+    if (!walletAddress) {
+      return sendJson(res, 400, { error: "walletAddress가 필요합니다." });
+    }
+    try {
+      // eslint-disable-next-line no-new
+      new PublicKey(walletAddress);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+
+    const [existing] = findWhere("promoters", (p) => p.walletAddress === walletAddress);
+    if (existing) {
+      return sendJson(res, 200, { promoter: existing, created: false });
+    }
+
+    const name = (body.name || "").trim() || `크리에이터-${walletAddress.slice(0, 4)}`;
+    const promoter = insert("promoters", {
+      id: uuidv4(),
+      name,
+      followers: 0,
+      walletAddress,
+    });
+    return sendJson(res, 201, { promoter, created: true });
   }
 
   // GET /api/promoters/:id/dashboard

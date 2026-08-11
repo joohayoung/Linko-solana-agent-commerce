@@ -58,16 +58,14 @@ function render(c) {
   `;
 }
 
-const PROMOTER_ID = "promoter-jisu"; // 데모: 크리에이터는 지수로 고정
-
-document.getElementById("participateBtn").addEventListener("click", async () => {
+async function doParticipate(promoterId) {
   const btn = document.getElementById("participateBtn");
   btn.disabled = true;
   btn.textContent = "처리 중...";
   try {
     await api(`/api/campaigns/${campaignId}/participate`, {
       method: "POST",
-      body: JSON.stringify({ promoterId: PROMOTER_ID }),
+      body: JSON.stringify({ promoterId }),
     });
     location.href = `/promoter-campaign-detail.html?campaignId=${campaignId}`;
   } catch (e) {
@@ -75,6 +73,41 @@ document.getElementById("participateBtn").addEventListener("click", async () => 
     btn.disabled = false;
     btn.textContent = "광고 진행하기";
   }
+}
+
+document.getElementById("participateBtn").addEventListener("click", async () => {
+  const savedId = linkoGetSavedPromoterId();
+  if (savedId) {
+    doParticipate(savedId);
+    return;
+  }
+  // 지갑이 아직 연결 안 된 상태 — 버튼 아래에 연결 UI를 띄우고, 연결되면 자동으로 이어서 진행
+  const btn = document.getElementById("participateBtn");
+  btn.style.display = "none";
+  let gate = document.getElementById("participateGate");
+  if (!gate) {
+    gate = document.createElement("div");
+    gate.id = "participateGate";
+    gate.innerHTML = `
+      <p style="margin:0 0 10px; font-size:13px; color:var(--muted);">광고를 진행하려면 먼저 패스키로 지갑을 연결해주세요 (최초 1회만).</p>
+      <span data-linko-connect></span>
+    `;
+    btn.parentElement.appendChild(gate);
+  }
+  const wallet = await linkoWaitForWalletWidget();
+  wallet.subscribe(async (state) => {
+    if (!state.isConnected || !state.walletAddress || gate.dataset.handled) return;
+    gate.dataset.handled = "1";
+    try {
+      const promoter = await linkoEnsurePromoterForWallet(state.walletAddress);
+      gate.remove();
+      btn.style.display = "";
+      doParticipate(promoter.id);
+    } catch (e) {
+      gate.dataset.handled = "";
+      toast(e.message);
+    }
+  });
 });
 
 loadCampaign();
