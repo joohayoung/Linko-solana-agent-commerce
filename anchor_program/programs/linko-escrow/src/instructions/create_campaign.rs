@@ -45,11 +45,13 @@ pub fn handle_create_campaign(
     ctx: Context<CreateCampaign>,
     campaign_id: String,
     budget_usdc: u64,
+    platform_authority: Pubkey,
 ) -> Result<()> {
     require!(campaign_id.len() <= 36, ErrorCode::CampaignIdTooLong);
 
     let campaign = &mut ctx.accounts.campaign;
     campaign.advertiser = ctx.accounts.advertiser.key();
+    campaign.platform_authority = platform_authority;
     campaign.campaign_id = campaign_id;
     campaign.budget_usdc = budget_usdc;
     campaign.spent_usdc = 0;

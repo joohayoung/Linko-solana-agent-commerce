@@ -47,14 +47,17 @@ async function getDiscriminator(name) {
 
 /**
  * 1. create_campaign: 캠페인 생성 및 예산 USDC 에스크로(Vault) 입금
+ * platform_authority는 항상 플랫폼 지갑(WALLET_IDS.platform)으로 고정 — 이후 settle_commission을
+ * 이 플랫폼 지갑이 광고주 대신 실행할 수 있게 하는 권한 위임.
  */
-export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.settlement, campaignId, budgetUsdc }) {
+export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.advertiser, campaignId, budgetUsdc }) {
   const advertiser = loadWallet(advertiserWalletId);
+  const platformAuthority = loadWallet(WALLET_IDS.platform);
   const { campaignPda, vaultPda } = getCampaignPda(advertiser.publicKey, campaignId);
   const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiser.publicKey);
 
   const disc = await getDiscriminator("create_campaign");
-  
+
   const safeId = String(campaignId).slice(0, 32);
   const campaignIdBuf = Buffer.from(safeId, "utf8");
   const lenBuf = Buffer.alloc(4);
@@ -64,7 +67,9 @@ export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.set
   const budgetBuf = Buffer.alloc(8);
   budgetBuf.writeBigUInt64LE(rawAmount, 0);
 
-  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf]);
+  const platformAuthorityBuf = platformAuthority.publicKey.toBuffer(); // 32바이트 Pubkey
+
+  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf, platformAuthorityBuf]);
 
   const keys = [
     { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
@@ -96,7 +101,7 @@ export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.set
 /**
  * 헬퍼: 온체인에 해당 캠페인의 에스크로 PDA가 존재하는지 확인하고 없으면 자동 입금/생성
  */
-export async function ensureCampaignEscrow({ advertiserWalletId = WALLET_IDS.settlement, campaignId, budgetUsdc = 1000 }) {
+export async function ensureCampaignEscrow({ advertiserWalletId = WALLET_IDS.advertiser, campaignId, budgetUsdc = 1000 }) {
   const advertiser = loadWallet(advertiserWalletId);
   const { campaignPda } = getCampaignPda(advertiser.publicKey, campaignId);
   
@@ -114,7 +119,7 @@ export async function ensureCampaignEscrow({ advertiserWalletId = WALLET_IDS.set
  * 2. settle_commission: 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC 커미션 정산 해제
  */
 export async function settleFromEscrow({ advertiserPubkey, creatorPubkey, amountUsdc, orderId, campaignId }) {
-  const authority = loadWallet(WALLET_IDS.settlement); // 플랫폼 정산 권한 지갑
+  const authority = loadWallet(WALLET_IDS.platform); // 플랫폼 정산 권한 지갑
   const advertiserKey = new PublicKey(advertiserPubkey);
   const creatorKey = new PublicKey(creatorPubkey);
 

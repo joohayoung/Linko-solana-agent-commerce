@@ -27,9 +27,10 @@ export const MOCK_SHOP_BASE_URL =
 // 데모용 고정 환율 (원/USDC)
 export const KRW_PER_USDC = 1400;
 
-// 데모용 지갑 아이디 목록
+// 데모용 지갑 아이디 목록 — 광고주/플랫폼/크리에이터 역할별로 분리된 지갑
 export const WALLET_IDS = {
-  settlement: "settlement", // 정산 지갑 (광고주/플랫폼 대표)
+  platform: "settlement", // 플랫폼 지갑: settle_commission 실행 권한 + 가스비 대납 (기존 "settlement" 파일 재사용)
+  advertiser: "advertiser", // 광고주 데모 지갑: 캠페인 생성 + 예산 USDC 예치
   promoter1: "promoter-jisu", // 크리에이터 지수
   promoter2: "promoter-minsu", // 크리에이터 민수
 };

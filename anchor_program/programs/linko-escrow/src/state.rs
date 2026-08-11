@@ -4,6 +4,8 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace)]
 pub struct Campaign {
     pub advertiser: Pubkey,
+    /// 플랫폼(정산 서비스) 권한 지갑. settle_commission 실행을 위임받은 주체.
+    pub platform_authority: Pubkey,
     #[max_len(36)]
     pub campaign_id: String,
     pub budget_usdc: u64,

@@ -70,15 +70,15 @@ export async function processOrder(orderId) {
     const { loadWallet } = await import("./solanaPay.mjs");
     const { WALLET_IDS } = await import("./config.mjs");
     
-    // 1. 광고주 대표 지갑 (settlement 지갑)
-    const advertiserWallet = loadWallet(WALLET_IDS.settlement);
+    // 1. 광고주 데모 지갑 (플랫폼 지갑과 분리됨)
+    const advertiserWallet = loadWallet(WALLET_IDS.advertiser);
     const advertiserPubkey = advertiserWallet.publicKey.toBase58();
 
     // 2. 온체인 Campaign PDA / Vault PDA가 없으면 자동 입금 및 에스크로 계정 생성 보장 (3 USDC 예산 잠금)
     await ensureCampaignEscrow({
-      advertiserWalletId: WALLET_IDS.settlement,
+      advertiserWalletId: WALLET_IDS.advertiser,
       campaignId: campaign.id,
-      budgetUsdc: 3,
+      budgetUsdc: 10,
     });
 
     // 3. 진짜 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC 정산 해제 (Release)

@@ -10,7 +10,7 @@ import { loadWallet, settleCommission } from "../src/solanaPay.mjs";
 async function main() {
   console.log("=== Solana Pay 정산 테스트 (devnet) ===\n");
 
-  const settlement = loadWallet(WALLET_IDS.settlement);
+  const settlement = loadWallet(WALLET_IDS.platform);
   const jisu = loadWallet(WALLET_IDS.promoter1);
 
   const orderId = uuidv4();

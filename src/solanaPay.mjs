@@ -25,7 +25,7 @@ export function loadWallet(id) {
  * @returns {Promise<{signature: string, reference: string, solscanUrl: string}>}
  */
 export async function settleCommission({ toPublicKey, amountUsdc, orderId }) {
-  const settlement = loadWallet(WALLET_IDS.settlement);
+  const settlement = loadWallet(WALLET_IDS.platform);
   const reference = new Keypair().publicKey; // Solana Pay reference (주문 추적용)
 
   const tx = await createTransfer(connection, settlement.publicKey, {
