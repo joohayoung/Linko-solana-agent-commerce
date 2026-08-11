@@ -114,10 +114,14 @@ api("/api/config")
   })
   .catch(() => {});
 
+let currentAdvertiser = null; // 패스키로 로그인한 광고주 계정 (linkoRequireAdvertiserSession 완료 후 채워짐)
+
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const btn = document.getElementById("submitBtn");
   const payload = {
     advertiser: document.getElementById("advertiser").value.trim(),
+    advertiserId: currentAdvertiser?.id || null,
+    advertiserWallet: currentAdvertiser?.walletAddress || null,
     product: document.getElementById("product").value.trim(),
     description: document.getElementById("description").value.trim(),
     productUrl: document.getElementById("productUrl").value.trim(),
@@ -129,6 +133,9 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     commissionTiers: collectTiers(),
   };
 
+  if (!currentAdvertiser) {
+    return toast("먼저 지문/얼굴인식으로 광고주 계정을 연결해주세요.");
+  }
   if (!payload.advertiser || !payload.product || !payload.price) {
     return toast("브랜드명, 상품명, 가격은 필수예요.");
   }
@@ -148,4 +155,8 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     btn.disabled = false;
     btn.textContent = "캠페인 등록하기";
   }
+});
+
+linkoRequireAdvertiserSession((id, advertiser) => {
+  currentAdvertiser = advertiser;
 });

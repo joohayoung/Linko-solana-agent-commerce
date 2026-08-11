@@ -165,6 +165,8 @@ async function handleApi(req, res, url, parts) {
     const campaign = insert("campaigns", {
       id: `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`,
       advertiser: body.advertiser,
+      advertiserId: body.advertiserId || null, // 패스키로 로그인한 광고주 계정 id (2단계: 온보딩)
+      advertiserWallet: body.advertiserWallet || null, // 위 계정의 실제 지갑 주소
       product: body.product,
       description: body.description || "",
       productUrl: body.productUrl || "",
@@ -340,6 +342,49 @@ async function handleApi(req, res, url, parts) {
     return sendJson(res, 201, { promoter, created: true });
   }
 
+  // POST /api/advertisers/by-wallet — 광고주용 패스키 로그인. 프로모터 쪽과 동일한 패턴.
+  // (2단계 범위: 로그인/신원 확인까지만 — 캠페인 예산 예치 서명은 아직 플랫폼이 대신 처리)
+  if (method === "POST" && parts.length === 2 && parts[0] === "advertisers" && parts[1] === "by-wallet") {
+    const body = await readBody(req);
+    const walletAddress = (body.walletAddress || "").trim();
+    if (!walletAddress) {
+      return sendJson(res, 400, { error: "walletAddress가 필요합니다." });
+    }
+    try {
+      // eslint-disable-next-line no-new
+      new PublicKey(walletAddress);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+
+    const [existing] = findWhere("advertisers", (a) => a.walletAddress === walletAddress);
+    if (existing) {
+      return sendJson(res, 200, { advertiser: existing, created: false });
+    }
+
+    const name = (body.name || "").trim() || `브랜드-${walletAddress.slice(0, 4)}`;
+    const advertiser = insert("advertisers", {
+      id: uuidv4(),
+      name,
+      walletAddress,
+    });
+    return sendJson(res, 201, { advertiser, created: true });
+  }
+
+  // GET /api/advertisers/:id
+  if (method === "GET" && parts.length === 2 && parts[0] === "advertisers") {
+    const advertiser = findById("advertisers", parts[1]);
+    if (!advertiser) return sendJson(res, 404, { error: "광고주를 찾을 수 없습니다." });
+    return sendJson(res, 200, { advertiser });
+  }
+
+  // GET /api/promoters/:id
+  if (method === "GET" && parts.length === 2 && parts[0] === "promoters") {
+    const promoter = findById("promoters", parts[1]);
+    if (!promoter) return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
+    return sendJson(res, 200, { promoter });
+  }
+
   // GET /api/promoters/:id/dashboard
   if (method === "GET" && parts.length === 3 && parts[0] === "promoters" && parts[2] === "dashboard") {
     const promoter = findById("promoters", parts[1]);
@@ -415,10 +460,17 @@ async function handleApi(req, res, url, parts) {
     });
   }
 
-  // GET /api/advertiser/dashboard?advertiser=브랜드명 — 넘기면 해당 브랜드 캠페인만 필터링
+  // GET /api/advertiser/dashboard?advertiser=브랜드명 또는 ?advertiserId=... — 넘기면 해당 광고주 캠페인만 필터링
+  // (advertiserId가 있으면 우선 사용 — 패스키 로그인한 광고주 계정 기준. 브랜드명 필터는 과거 데모 데이터 호환용)
   if (method === "GET" && parts.length === 2 && parts[0] === "advertiser" && parts[1] === "dashboard") {
     const advertiserFilter = url.searchParams.get("advertiser");
-    const campaigns = readAll("campaigns").filter((c) => !advertiserFilter || c.advertiser === advertiserFilter).reverse();
+    const advertiserIdFilter = url.searchParams.get("advertiserId");
+    const campaigns = readAll("campaigns")
+      .filter((c) => {
+        if (advertiserIdFilter) return c.advertiserId === advertiserIdFilter;
+        return !advertiserFilter || c.advertiser === advertiserFilter;
+      })
+      .reverse();
     const allOrders = readAll("orders");
     const promoters = readAll("promoters");
 

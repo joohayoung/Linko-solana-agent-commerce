@@ -101,6 +101,7 @@ document.getElementById("participateBtn").addEventListener("click", async () => 
     gate.dataset.handled = "1";
     try {
       const promoter = await linkoEnsurePromoterForWallet(state.walletAddress);
+      linkoRenderWalletBadge("promoter", promoter);
       gate.remove();
       btn.style.display = "";
       doParticipate(promoter.id);
@@ -112,3 +113,4 @@ document.getElementById("participateBtn").addEventListener("click", async () => 
 });
 
 loadCampaign();
+linkoShowBadgeIfConnected("promoter");
