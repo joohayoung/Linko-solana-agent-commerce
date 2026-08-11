@@ -60,6 +60,7 @@ async function linkoRequirePromoterSession(onReady) {
   main.prepend(banner);
 
   const wallet = await linkoWaitForWalletWidget();
+  wallet.registerConnectSlot(banner.querySelector("[data-linko-connect]"));
   wallet.subscribe(async (state) => {
     if (!state.isConnected || !state.walletAddress) return;
     if (banner.dataset.handled) return; // 중복 호출 방지

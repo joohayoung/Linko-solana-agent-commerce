@@ -21,6 +21,7 @@ import { searchCampaigns } from "./src/search.mjs";
 import { SHOP_IDS, createOrder as createShopOrder, getOrder as getShopOrder, setState as setShopState } from "./src/mockShop.mjs"; // 정산 로직에는 더 이상 쓰이지 않음(확정대기기간 경과로 자동정산). /mock-shop 데모 라우트에서만 사용.
 import { APP_PORT, KRW_PER_USDC } from "./src/config.mjs";
 import { chat as agentChat } from "./src/agent.mjs";
+import { handlePaymasterRpc } from "./src/paymaster.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -631,6 +632,31 @@ async function handleGoRedirect(req, res, code) {
   res.end();
 }
 
+// POST /paymaster — LazorKit 지갑 SDK가 호출하는 JSON-RPC 스타일 paymaster 엔드포인트.
+// 프론트와 같은 오리진(이 서버)에서 서빙되므로 CORS 문제 자체가 생기지 않음.
+async function handlePaymasterRoute(req, res) {
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+    });
+    return res.end();
+  }
+  if (req.method !== "POST") {
+    res.writeHead(405, { "Access-Control-Allow-Origin": "*" });
+    return res.end();
+  }
+  const body = await readBody(req);
+  const result = await handlePaymasterRpc(body);
+  const json = JSON.stringify(result);
+  res.writeHead(200, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
+  });
+  return res.end(json);
+}
+
 // ---------------- 서버 ----------------
 
 const server = http.createServer(async (req, res) => {
@@ -642,6 +668,7 @@ const server = http.createServer(async (req, res) => {
     if (parts[0] === "api") return await handleApi(req, res, url, parts.slice(1));
     if (parts[0] === "mock-shop") return await handleMockShop(req, res, parts.slice(1));
     if (parts[0] === "go" && parts.length === 2) return await handleGoRedirect(req, res, parts[1]);
+    if (parts[0] === "paymaster" && parts.length === 1) return await handlePaymasterRoute(req, res);
     return serveStatic(req, res, url.pathname);
   } catch (e) {
     console.error(e);

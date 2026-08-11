@@ -18,6 +18,17 @@ import { LazorkitProvider, useWallet } from "@lazorkit/wallet";
  */
 
 const RPC_URL = window.__LINKO_RPC_URL__ || "https://api.devnet.solana.com";
+const PORTAL_URL = "https://portal.lazor.sh";
+// @lazorkit/wallet 2.0.1의 LazorkitProvider가 paymasterConfig prop을 안 넘기면
+// 기본 파라미터로 매 렌더마다 새 객체({ paymasterUrl: ... })를 만들어서, 그걸 그대로
+// useEffect 의존성 배열에 넣는 바람에 무한 렌더 루프(Maximum update depth exceeded)가 남.
+// 그래서 여기서 모듈 스코프의 "고정 참조" 객체를 만들어 명시적으로 넘겨서 우회한다.
+//
+// paymasterUrl: LazorKit이 공개해둔 두 공용 테스트 paymaster(onrender.com은 CORS로 우리 origin을
+// 막고, kora.devnet.lazorkit.com은 우리가 쓰는 프로그램 버전을 allow-list에 안 올려둠)가 둘 다 막혀있어서,
+// 우리 서버(server.mjs, /paymaster)에 platform 지갑을 fee payer로 쓰는 미니 paymaster를 직접 구현해
+// 자체 호스팅함. 같은 오리진이라 CORS 문제 자체가 없고, 우리가 원래 세운 설계("가스비는 플랫폼이 대납")와도 일치.
+const PAYMASTER_CONFIG = { paymasterUrl: `${window.location.origin}/paymaster` };
 
 // ---------- 외부(순수 JS)에서 구독 가능한 아주 단순한 pub-sub ----------
 const listeners = new Set();
@@ -65,9 +76,15 @@ function Bridge() {
   }, [connect, disconnect]);
 
   // 선언적 슬롯: [data-linko-connect] 요소를 찾아 연결 버튼/칩을 이식
-  const [slots, setSlots] = useState([]);
+  // 페이지 쪽(wallet-session.js 등)이 배너를 "런타임에 동적으로" DOM에 추가하는 경우가 많아서
+  // 마운트 시 1회 스캔에 더해, window.LinkoWallet.registerConnectSlot(el)로 명시적으로도 등록 가능하게 함
+  // (MutationObserver는 포탈 자체가 만드는 DOM 변경까지 다시 감지해서 무한 렌더 루프를 유발하므로 사용하지 않음)
+  const [slots, setSlots] = useState(() => Array.from(document.querySelectorAll("[data-linko-connect]")));
   useEffect(() => {
-    setSlots(Array.from(document.querySelectorAll("[data-linko-connect]")));
+    window.LinkoWallet.registerConnectSlot = (el) => {
+      if (!el) return;
+      setSlots((prev) => (prev.includes(el) ? prev : [...prev, el]));
+    };
   }, []);
 
   return (
@@ -113,6 +130,10 @@ function mount() {
   window.LinkoWallet.connect =
     window.LinkoWallet.connect || (() => Promise.reject(new Error("지갑 위젯이 아직 준비되지 않았어요.")));
   window.LinkoWallet.disconnect = window.LinkoWallet.disconnect || (() => Promise.resolve());
+  // Bridge가 아직 실제 구현을 등록하기 전(첫 렌더 이전)에 페이지 쪽에서 먼저 호출하는 경우를 대비
+  window.LinkoWallet.registerConnectSlot =
+    window.LinkoWallet.registerConnectSlot ||
+    ((el) => setTimeout(() => window.LinkoWallet.registerConnectSlot?.(el), 30));
 
   let host = document.getElementById("__linko_wallet_root");
   if (!host) {
@@ -122,7 +143,7 @@ function mount() {
   }
 
   createRoot(host).render(
-    <LazorkitProvider rpcUrl={RPC_URL}>
+    <LazorkitProvider rpcUrl={RPC_URL} portalUrl={PORTAL_URL} paymasterConfig={PAYMASTER_CONFIG}>
       <Bridge />
     </LazorkitProvider>
   );

@@ -95,6 +95,7 @@ document.getElementById("participateBtn").addEventListener("click", async () => 
     btn.parentElement.appendChild(gate);
   }
   const wallet = await linkoWaitForWalletWidget();
+  wallet.registerConnectSlot(gate.querySelector("[data-linko-connect]"));
   wallet.subscribe(async (state) => {
     if (!state.isConnected || !state.walletAddress || gate.dataset.handled) return;
     gate.dataset.handled = "1";
