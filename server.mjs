@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { v4 as uuidv4 } from "uuid";
+import { PublicKey } from "@solana/web3.js";
 
 import { readAll, findById, findWhere, insert, update } from "./src/db.mjs";
 import { processOrder } from "./src/settlementEngine.mjs";
@@ -20,6 +21,7 @@ import { searchCampaigns } from "./src/search.mjs";
 import { SHOP_IDS, createOrder as createShopOrder, getOrder as getShopOrder, setState as setShopState } from "./src/mockShop.mjs"; // 정산 로직에는 더 이상 쓰이지 않음(확정대기기간 경과로 자동정산). /mock-shop 데모 라우트에서만 사용.
 import { APP_PORT, KRW_PER_USDC } from "./src/config.mjs";
 import { chat as agentChat } from "./src/agent.mjs";
+import { handlePaymasterRpc } from "./src/paymaster.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -163,6 +165,8 @@ async function handleApi(req, res, url, parts) {
     const campaign = insert("campaigns", {
       id: `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`,
       advertiser: body.advertiser,
+      advertiserId: body.advertiserId || null, // 패스키로 로그인한 광고주 계정 id (2단계: 온보딩)
+      advertiserWallet: body.advertiserWallet || null, // 위 계정의 실제 지갑 주소
       product: body.product,
       description: body.description || "",
       productUrl: body.productUrl || "",
@@ -308,6 +312,79 @@ async function handleApi(req, res, url, parts) {
     return sendJson(res, 200, { promoters: readAll("promoters") });
   }
 
+  // POST /api/promoters/by-wallet — LazorKit 패스키로 연결된 지갑 주소로 프로모터를 찾거나 신규 생성
+  // (2단계: 수동 지갑주소 입력 대신 프론트에서 지갑 연결 직후 이 API를 호출해서 세션을 만듭니다)
+  if (method === "POST" && parts.length === 2 && parts[0] === "promoters" && parts[1] === "by-wallet") {
+    const body = await readBody(req);
+    const walletAddress = (body.walletAddress || "").trim();
+    if (!walletAddress) {
+      return sendJson(res, 400, { error: "walletAddress가 필요합니다." });
+    }
+    try {
+      // eslint-disable-next-line no-new
+      new PublicKey(walletAddress);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+
+    const [existing] = findWhere("promoters", (p) => p.walletAddress === walletAddress);
+    if (existing) {
+      return sendJson(res, 200, { promoter: existing, created: false });
+    }
+
+    const name = (body.name || "").trim() || `크리에이터-${walletAddress.slice(0, 4)}`;
+    const promoter = insert("promoters", {
+      id: uuidv4(),
+      name,
+      followers: 0,
+      walletAddress,
+    });
+    return sendJson(res, 201, { promoter, created: true });
+  }
+
+  // POST /api/advertisers/by-wallet — 광고주용 패스키 로그인. 프로모터 쪽과 동일한 패턴.
+  // (2단계 범위: 로그인/신원 확인까지만 — 캠페인 예산 예치 서명은 아직 플랫폼이 대신 처리)
+  if (method === "POST" && parts.length === 2 && parts[0] === "advertisers" && parts[1] === "by-wallet") {
+    const body = await readBody(req);
+    const walletAddress = (body.walletAddress || "").trim();
+    if (!walletAddress) {
+      return sendJson(res, 400, { error: "walletAddress가 필요합니다." });
+    }
+    try {
+      // eslint-disable-next-line no-new
+      new PublicKey(walletAddress);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+
+    const [existing] = findWhere("advertisers", (a) => a.walletAddress === walletAddress);
+    if (existing) {
+      return sendJson(res, 200, { advertiser: existing, created: false });
+    }
+
+    const name = (body.name || "").trim() || `브랜드-${walletAddress.slice(0, 4)}`;
+    const advertiser = insert("advertisers", {
+      id: uuidv4(),
+      name,
+      walletAddress,
+    });
+    return sendJson(res, 201, { advertiser, created: true });
+  }
+
+  // GET /api/advertisers/:id
+  if (method === "GET" && parts.length === 2 && parts[0] === "advertisers") {
+    const advertiser = findById("advertisers", parts[1]);
+    if (!advertiser) return sendJson(res, 404, { error: "광고주를 찾을 수 없습니다." });
+    return sendJson(res, 200, { advertiser });
+  }
+
+  // GET /api/promoters/:id
+  if (method === "GET" && parts.length === 2 && parts[0] === "promoters") {
+    const promoter = findById("promoters", parts[1]);
+    if (!promoter) return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
+    return sendJson(res, 200, { promoter });
+  }
+
   // GET /api/promoters/:id/dashboard
   if (method === "GET" && parts.length === 3 && parts[0] === "promoters" && parts[2] === "dashboard") {
     const promoter = findById("promoters", parts[1]);
@@ -383,10 +460,17 @@ async function handleApi(req, res, url, parts) {
     });
   }
 
-  // GET /api/advertiser/dashboard?advertiser=브랜드명 — 넘기면 해당 브랜드 캠페인만 필터링
+  // GET /api/advertiser/dashboard?advertiser=브랜드명 또는 ?advertiserId=... — 넘기면 해당 광고주 캠페인만 필터링
+  // (advertiserId가 있으면 우선 사용 — 패스키 로그인한 광고주 계정 기준. 브랜드명 필터는 과거 데모 데이터 호환용)
   if (method === "GET" && parts.length === 2 && parts[0] === "advertiser" && parts[1] === "dashboard") {
     const advertiserFilter = url.searchParams.get("advertiser");
-    const campaigns = readAll("campaigns").filter((c) => !advertiserFilter || c.advertiser === advertiserFilter).reverse();
+    const advertiserIdFilter = url.searchParams.get("advertiserId");
+    const campaigns = readAll("campaigns")
+      .filter((c) => {
+        if (advertiserIdFilter) return c.advertiserId === advertiserIdFilter;
+        return !advertiserFilter || c.advertiser === advertiserFilter;
+      })
+      .reverse();
     const allOrders = readAll("orders");
     const promoters = readAll("promoters");
 
@@ -600,6 +684,31 @@ async function handleGoRedirect(req, res, code) {
   res.end();
 }
 
+// POST /paymaster — LazorKit 지갑 SDK가 호출하는 JSON-RPC 스타일 paymaster 엔드포인트.
+// 프론트와 같은 오리진(이 서버)에서 서빙되므로 CORS 문제 자체가 생기지 않음.
+async function handlePaymasterRoute(req, res) {
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+    });
+    return res.end();
+  }
+  if (req.method !== "POST") {
+    res.writeHead(405, { "Access-Control-Allow-Origin": "*" });
+    return res.end();
+  }
+  const body = await readBody(req);
+  const result = await handlePaymasterRpc(body);
+  const json = JSON.stringify(result);
+  res.writeHead(200, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
+  });
+  return res.end(json);
+}
+
 // ---------------- 서버 ----------------
 
 const server = http.createServer(async (req, res) => {
@@ -611,6 +720,7 @@ const server = http.createServer(async (req, res) => {
     if (parts[0] === "api") return await handleApi(req, res, url, parts.slice(1));
     if (parts[0] === "mock-shop") return await handleMockShop(req, res, parts.slice(1));
     if (parts[0] === "go" && parts.length === 2) return await handleGoRedirect(req, res, parts[1]);
+    if (parts[0] === "paymaster" && parts.length === 1) return await handlePaymasterRoute(req, res);
     return serveStatic(req, res, url.pathname);
   } catch (e) {
     console.error(e);

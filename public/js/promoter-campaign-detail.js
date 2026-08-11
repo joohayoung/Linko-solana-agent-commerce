@@ -1,8 +1,7 @@
-const PROMOTER_ID = "promoter-jisu"; // 데모: 크리에이터는 지수로 고정
-
 const params = new URLSearchParams(location.search);
 const campaignId = params.get("campaignId");
 let ctx = null;
+let currentPromoterId = null;
 
 async function load() {
   if (!campaignId) {
@@ -10,7 +9,7 @@ async function load() {
     return;
   }
   try {
-    const data = await api(`/api/promoters/${PROMOTER_ID}/campaigns/${campaignId}`);
+    const data = await api(`/api/promoters/${currentPromoterId}/campaigns/${campaignId}`);
     ctx = data;
     render(data);
   } catch (e) {
@@ -119,4 +118,7 @@ document.getElementById("simBuyBtn").addEventListener("click", async () => {
   }
 });
 
-load();
+linkoRequirePromoterSession((promoterId) => {
+  currentPromoterId = promoterId;
+  load();
+});

@@ -1,5 +1,3 @@
-const PROMOTER_ID = "promoter-jisu"; // 데모: 크리에이터는 지수로 고정
-
 async function loadDashboard(promoterId) {
   try {
     const data = await api(`/api/promoters/${promoterId}/dashboard`);
@@ -69,4 +67,4 @@ function renderOrders(orders) {
     .join("");
 }
 
-loadDashboard(PROMOTER_ID);
+linkoRequirePromoterSession(loadDashboard);

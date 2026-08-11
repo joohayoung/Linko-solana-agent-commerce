@@ -1,8 +1,6 @@
-const ADVERTISER_NAME = "선데이글로우"; // 데모: 광고주는 선데이글로우로 고정
-
-async function load() {
+async function load(advertiserId) {
   try {
-    const data = await api(`/api/advertiser/dashboard?advertiser=${encodeURIComponent(ADVERTISER_NAME)}`);
+    const data = await api(`/api/advertiser/dashboard?advertiserId=${encodeURIComponent(advertiserId)}`);
     renderStats(data);
     renderCampaigns(data.campaigns);
   } catch (e) {
@@ -43,4 +41,4 @@ function renderCampaigns(campaigns) {
     .join("");
 }
 
-load();
+linkoRequireAdvertiserSession((id) => load(id));

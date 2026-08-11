@@ -452,5 +452,39 @@
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "sundayglow-mall",
     "status": "active"
+  },
+  {
+    "id": "c-1586ca0d92e0469d",
+    "advertiser": "선데이글로우",
+    "advertiserId": "0e95ab54-1b5d-42cb-a5ac-c0ce13880258",
+    "advertiserWallet": "3Xyu2CVhmtkF5EUU4VM1LrvkUzs3z2LwN5SAEqah36iK",
+    "product": "오렌지토너",
+    "description": "오렌지토너",
+    "productUrl": "https://sundayglow-mall.com/products/houttuynia-soothing-toner",
+    "guideline": "오렌지토너",
+    "tags": [
+      "스킨케어",
+      "토너",
+      "진정"
+    ],
+    "price": 30000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 8,
+    "budgetKrw": 1000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "nongshim-mall",
+    "status": "active"
   }
 ]
