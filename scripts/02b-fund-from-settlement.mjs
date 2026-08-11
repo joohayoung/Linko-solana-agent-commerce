@@ -32,7 +32,7 @@ async function main() {
   }
   const amountSol = parseFloat(amountArg || "0.5");
 
-  const settlement = loadWallet(WALLET_IDS.settlement);
+  const settlement = loadWallet(WALLET_IDS.platform);
   const target = loadWallet(targetId);
 
   const settlementBalance = await connection.getBalance(settlement.publicKey);

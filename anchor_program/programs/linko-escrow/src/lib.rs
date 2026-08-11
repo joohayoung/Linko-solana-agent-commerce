@@ -19,8 +19,9 @@ pub mod linko_escrow {
         ctx: Context<CreateCampaign>,
         campaign_id: String,
         budget_usdc: u64,
+        platform_authority: Pubkey,
     ) -> Result<()> {
-        instructions::create_campaign::handle_create_campaign(ctx, campaign_id, budget_usdc)
+        instructions::create_campaign::handle_create_campaign(ctx, campaign_id, budget_usdc, platform_authority)
     }
 
     pub fn settle_commission(

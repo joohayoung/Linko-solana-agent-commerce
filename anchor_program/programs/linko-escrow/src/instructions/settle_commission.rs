@@ -8,7 +8,7 @@ pub struct SettleCommission<'info> {
     /// The settlement authority (advertiser or authorized platform wallet)
     #[account(
         mut,
-        constraint = (authority.key() == campaign.advertiser || authority.key() == campaign.mint) @ ErrorCode::Unauthorized
+        constraint = (authority.key() == campaign.advertiser || authority.key() == campaign.platform_authority) @ ErrorCode::Unauthorized
     )]
     pub authority: Signer<'info>,
 
