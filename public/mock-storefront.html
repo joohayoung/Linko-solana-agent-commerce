@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>쇼핑몰</title>
+<style>
+  :root {
+    --shop-ink: #1c1c1e;
+    --shop-sub: #6b6b70;
+    --shop-line: #e5e5e7;
+    --shop-bg: #fafafa;
+    --shop-accent: #2f6f4f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Pretendard", "Malgun Gothic", sans-serif;
+    background: var(--shop-bg);
+    color: var(--shop-ink);
+  }
+  header.shop-nav {
+    background: #fff;
+    border-bottom: 1px solid var(--shop-line);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .shop-name { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .shop-menu { display: flex; gap: 22px; font-size: 13.5px; color: var(--shop-sub); }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  .product-card { background: #fff; border: 1px solid var(--shop-line); border-radius: 10px; overflow: hidden; }
+  .product-media {
+    height: 260px; background: #f0f0f0; display: flex; align-items: center;
+    justify-content: center; font-size: 48px; color: #c8c8ca;
+  }
+  .product-media img { width: 100%; height: 100%; object-fit: cover; }
+  .product-body { padding: 26px; }
+  .product-brand { font-size: 12.5px; color: var(--shop-sub); margin-bottom: 6px; }
+  .product-name { font-size: 21px; font-weight: 800; margin: 0 0 10px; }
+  .product-desc { font-size: 14px; color: var(--shop-sub); line-height: 1.5; margin: 0 0 18px; }
+  .product-price { font-size: 24px; font-weight: 800; margin-bottom: 22px; }
+  .buy-btn {
+    width: 100%; padding: 15px; border: none; border-radius: 8px;
+    background: var(--shop-ink); color: #fff; font-size: 15.5px; font-weight: 700; cursor: pointer;
+  }
+  .buy-btn:disabled { opacity: 0.5; cursor: default; }
+  .buy-btn.ghost { background: #fff; color: var(--shop-ink); border: 1px solid var(--shop-line); }
+  .notice { font-size: 12px; color: var(--shop-sub); text-align: center; margin-top: 14px; }
+  .order-complete { background: #fff; border: 1px solid var(--shop-line); border-radius: 10px; padding: 44px 30px; text-align: center; }
+  .order-check {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--shop-accent); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 18px;
+  }
+  .order-title { font-size: 19px; font-weight: 800; margin: 0 0 8px; }
+  .order-sub { font-size: 13.5px; color: var(--shop-sub); margin: 0 0 26px; }
+  .order-info { text-align: left; background: var(--shop-bg); border-radius: 8px; padding: 16px 18px; font-size: 13.5px; margin-bottom: 22px; }
+  .order-info div { display: flex; justify-content: space-between; padding: 5px 0; }
+  .order-info .label { color: var(--shop-sub); }
+  .order-info .mono { font-family: monospace; font-size: 12px; }
+  .track-status { font-size: 12.5px; color: var(--shop-sub); margin-top: 14px; }
+  footer.shop-footer { text-align: center; padding: 30px 20px; font-size: 11.5px; color: #a5a5aa; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--shop-sub); }
+  .qty-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .qty-row label { font-size: 13.5px; color: var(--shop-sub); }
+  .qty-row input {
+    width: 64px; padding: 8px 10px; border: 1px solid var(--shop-line);
+    border-radius: 6px; font-size: 14px; text-align: center;
+  }
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+    background: var(--shop-ink); color: white; padding: 13px 22px; border-radius: 999px;
+    font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+    z-index: 100; max-width: 80vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+</style>
+</head>
+<body>
+
+<header class="shop-nav">
+  <div class="shop-name" id="shopName">쇼핑몰</div>
+  <nav class="shop-menu">
+    <span>홈</span>
+    <span>전체상품</span>
+    <span>리뷰</span>
+    <span>고객센터</span>
+  </nav>
+</header>
+
+<main id="content">
+  <div class="empty-state">불러오는 중...</div>
+</main>
+
+<footer class="shop-footer" id="shopFooter"></footer>
+
+<script src="/js/common.js"></script>
+<script src="/js/mock-storefront.js"></script>
+</body>
+</html>

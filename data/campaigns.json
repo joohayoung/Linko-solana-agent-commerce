@@ -486,5 +486,69 @@
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "nongshim-mall",
     "status": "active"
+  },
+  {
+    "id": "c-924c80c9e1bf4c29",
+    "advertiser": "선데이글로우",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "advertiserWallet": "146zFToSbU3dwi97Rh1yQB2W955Hg19A7zZJ3rXB3qJy",
+    "product": "무기자차 선크림",
+    "description": "무기자차 선크림입니다.",
+    "productUrl": "https://sundayglow-mall.com/products/sunscreen-spf50",
+    "guideline": "무기자차 선크림",
+    "tags": [
+      "스킨케어"
+    ],
+    "price": 20000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 10,
+    "budgetKrw": 10000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "lge-mall",
+    "status": "active"
+  },
+  {
+    "id": "c-3c2f763527e546f1",
+    "advertiser": "나이키",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "advertiserWallet": "146zFToSbU3dwi97Rh1yQB2W955Hg19A7zZJ3rXB3qJy",
+    "product": "조던 신발",
+    "description": "조던 신발입니다",
+    "productUrl": "https://qweq.com",
+    "guideline": "asdasd",
+    "tags": [
+      "ad"
+    ],
+    "price": 30000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 4,
+    "budgetKrw": 1000000,
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "sundayglow-mall",
+    "status": "active"
   }
 ]
