@@ -86,5 +86,29 @@
     "referralCode": "크리에이터7CE8-저속노화샐러드정기구",
     "clicks": 0,
     "joinedAt": "2026-08-11T12:06:35.411Z"
+  },
+  {
+    "id": "9960e652-7194-48b0-a2e6-6e2666df40e4",
+    "promoterId": "3ce9d945-63e1-4088-84b5-a910ee9ec21a",
+    "campaignId": "c-924c80c9e1bf4c29",
+    "referralCode": "크리에이터28YF-무기자차선크림",
+    "clicks": 8,
+    "joinedAt": "2026-08-12T05:38:41.984Z"
+  },
+  {
+    "id": "813170fa-ba1f-4ca6-9ad4-ad60cf2d1aa6",
+    "promoterId": "promoter-jisu",
+    "campaignId": "c-924c80c9e1bf4c29",
+    "referralCode": "지수-무기자차선크림",
+    "clicks": 1,
+    "joinedAt": "2026-08-12T09:39:28.253Z"
+  },
+  {
+    "id": "0b4a2953-feeb-4f00-9861-b621e581bb52",
+    "promoterId": "3ce9d945-63e1-4088-84b5-a910ee9ec21a",
+    "campaignId": "c-3c2f763527e546f1",
+    "referralCode": "크리에이터28YF-조던신발",
+    "clicks": 1,
+    "joinedAt": "2026-08-12T10:08:15.746Z"
   }
 ]

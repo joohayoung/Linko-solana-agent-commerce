@@ -550,25 +550,56 @@ async function handleApi(req, res, url, parts) {
     return sendJson(res, 201, { orders: created, count: created.length });
   }
 
-  // POST /api/checkout  { referralCode }
+  // // POST /api/checkout  { referralCode }
+  // if (method === "POST" && parts.length === 1 && parts[0] === "checkout") {
+  //   const body = await readBody(req);
+  //   const [participation] = findWhere("participations", (p) => p.referralCode === body.referralCode);
+  //   if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
+  //   const campaign = findById("campaigns", participation.campaignId);
+
+  //   const orderId = uuidv4();
+  //   const purchasedAt = new Date();
+  //   const confirmDueAt = new Date(purchasedAt.getTime() + campaign.confirmDelayDays * 24 * 60 * 60 * 1000);
+
+  //   createShopOrder(campaign.shopId, orderId, campaign.price);
+
+  //   const order = insert("orders", {
+  //     id: orderId,
+  //     campaignId: campaign.id,
+  //     referralCode: participation.referralCode,
+  //     promoterId: participation.promoterId,
+  //     amount: campaign.price,
+  //     status: "purchased",
+  //     purchasedAt: purchasedAt.toISOString(),
+  //     confirmDueAt: confirmDueAt.toISOString(),
+  //     settledAt: null,
+  //     settlementTx: null,
+  //     commissionRateApplied: null,
+  //     commissionAmountUsdc: null,
+  //   });
+
+  //   return sendJson(res, 201, { order });
+  // }
+
+  // POST /api/checkout  { referralCode, quantity }
   if (method === "POST" && parts.length === 1 && parts[0] === "checkout") {
     const body = await readBody(req);
     const [participation] = findWhere("participations", (p) => p.referralCode === body.referralCode);
     if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
     const campaign = findById("campaigns", participation.campaignId);
-
+    const quantity = Math.max(1, Math.min(20, Number(body.quantity) || 1));
+    const amount = campaign.price * quantity;
     const orderId = uuidv4();
     const purchasedAt = new Date();
     const confirmDueAt = new Date(purchasedAt.getTime() + campaign.confirmDelayDays * 24 * 60 * 60 * 1000);
-
-    createShopOrder(campaign.shopId, orderId, campaign.price);
-
+    createShopOrder(campaign.shopId, orderId, amount);
     const order = insert("orders", {
       id: orderId,
       campaignId: campaign.id,
       referralCode: participation.referralCode,
       promoterId: participation.promoterId,
-      amount: campaign.price,
+      quantity,
+      amount,
       status: "purchased",
       purchasedAt: purchasedAt.toISOString(),
       confirmDueAt: confirmDueAt.toISOString(),
@@ -577,10 +608,9 @@ async function handleApi(req, res, url, parts) {
       commissionRateApplied: null,
       commissionAmountUsdc: null,
     });
-
     return sendJson(res, 201, { order });
   }
-
+  
   // GET /api/orders/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "orders") {
     const order = findById("orders", parts[1]);
@@ -680,7 +710,12 @@ async function handleGoRedirect(req, res, code) {
     return res.end("유효하지 않은 추천 링크입니다.");
   }
   update("participations", participation.id, { clicks: (participation.clicks || 0) + 1 });
-  res.writeHead(302, { Location: `/checkout.html?ref=${encodeURIComponent(code)}` });
+  // 변경 전
+  // res.writeHead(302, { Location: `/checkout.html?ref=${encodeURIComponent(code)}` });
+
+  // 변경 후
+  res.writeHead(302, { Location: `/mock-storefront.html?ref=${encodeURIComponent(code)}` });
+
   res.end();
 }
 

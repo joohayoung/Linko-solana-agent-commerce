@@ -124,7 +124,8 @@ export async function settleFromEscrow({ advertiserPubkey, creatorPubkey, amount
   const creatorKey = new PublicKey(creatorPubkey);
 
   const { campaignPda, vaultPda } = getCampaignPda(advertiserKey, campaignId);
-  const creatorAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, creatorKey);
+  // const creatorAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, creatorKey);
+  const creatorAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, creatorKey, true); // 스마트월렛(off-curve) 허용
 
   // 크리에이터의 ATA가 존재하지 않으면 생성 트랜잭션 포함
   const tx = new Transaction();
