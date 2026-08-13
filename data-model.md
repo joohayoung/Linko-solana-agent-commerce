@@ -56,6 +56,8 @@ DB 없이 `data/*.json` 파일 기반 (파일 I/O는 `src/db.mjs`). 시간이 �
 | settlementTx | string \| null | Solana Pay 정산 트랜잭션 서명 (Solscan 링크용) |
 | commissionRateApplied | number \| null | 정산 시점에 적용된 요율 (해당 크리에이터의 그 시점까지 누적 확정건수 기준) |
 | commissionAmountUsdc | number \| null | 실제 지급된 USDC 커미션 금액 |
+| externalOrderId | string \| null | 광고주 스토어 측 주문번호. 구매확정 픽셀(`POST /api/pixel/conversion`)로 생성된 주문에만 존재 — 같은 주문이 중복 전송돼도 이 값으로 멱등 처리 |
+| source | string \| undefined | 주문이 어디서 생성됐는지 (`pixel` 등). 체크아웃 시뮬레이터로 생성된 기존 주문에는 없음 |
 
 ## 요율 계산 규칙 (핵심 로직, 모듈 6)
 특정 주문이 **확정**되는 순간, 그 주문의 promoterId가 **같은 캠페인에서 지금까지 확정한 누적 판매 건수**(이 주문 포함)를 세고, `commissionTiers`에서 그 구간의 rate를 찾아 적용한다. 요율은 확정 시점에 결정되며 소급 적용되지 않고, 크리에이터별로 독립적으로 계산된다.

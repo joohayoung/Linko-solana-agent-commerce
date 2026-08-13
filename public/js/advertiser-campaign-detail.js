@@ -49,7 +49,10 @@ function render(data) {
         <h1 style="margin:2px 0 6px; font-size:22px;">${escapeHtml(c.product)}</h1>
         <p style="color:var(--muted); margin:0 0 14px;">${escapeHtml(c.advertiser)} · ${escapeHtml(c.description)}</p>
         <div style="font-size:22px; font-weight:800;">${won(c.price)}</div>
-        ${c.productUrl ? `<a href="${escapeHtml(c.productUrl)}" target="_blank" rel="noopener" style="display:inline-block; margin-top:10px; font-size:12.5px; color:var(--primary-dark); font-weight:700;">실제 상품 페이지 ↗</a>` : ""}
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:10px;">
+          ${c.productUrl ? `<a href="${escapeHtml(c.productUrl)}" target="_blank" rel="noopener" style="font-size:12.5px; color:var(--primary-dark); font-weight:700;">실제 상품 페이지 ↗</a>` : ""}
+          <a href="/advertiser-pixel-setup.html?id=${c.id}" class="pill-btn ghost">🔌 픽셀 설치 안내</a>
+        </div>
       </div>
     </div>
 
