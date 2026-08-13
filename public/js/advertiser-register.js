@@ -148,7 +148,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   try {
     const data = await api("/api/campaigns", { method: "POST", body: JSON.stringify(payload) });
     toast("캠페인이 등록됐어요!");
-    setTimeout(() => (location.href = `/advertiser-campaign-detail.html?id=${data.campaign.id}`), 600);
+    setTimeout(() => (location.href = `/advertiser-pixel-setup.html?id=${data.campaign.id}`), 600);
   } catch (e) {
     toast(e.message);
   } finally {
