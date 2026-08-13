@@ -7,8 +7,13 @@
  */
 
 import { PublicKey, Keypair, TransactionInstruction, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { connection, USDC_DEVNET_MINT, WALLETS_DIR, WALLET_IDS, solscanTxUrl } from "./config.mjs";
+import {
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  createTransferCheckedInstruction,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { connection, USDC_DEVNET_MINT, WALLETS_DIR, WALLET_IDS, PLATFORM_FEE_RATE, solscanTxUrl } from "./config.mjs";
 import { loadWallet } from "./solanaPay.mjs";
 import fs from "node:fs";
 
@@ -88,12 +93,50 @@ export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.adv
   });
 
   const tx = new Transaction().add(ix);
-  const signature = await sendAndConfirmTransaction(connection, tx, [advertiser], { commitment: "confirmed" });
+
+  // 플랫폼 수수료 — 캠페인 예산과는 별도로, 같은 트랜잭션에서 (예산 × PLATFORM_FEE_RATE)만큼을
+  // 광고주 ATA → 플랫폼 ATA로 이체. Anchor 프로그램은 건드리지 않고 순수 SPL Token 이체로 처리.
+  const platformFeeUsdc = budgetUsdc * PLATFORM_FEE_RATE;
+  let platformFeeRaw = 0n;
+  if (platformFeeUsdc > 0) {
+    const platformAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, platformAuthority.publicKey);
+    const platformAtaInfo = await connection.getAccountInfo(platformAta);
+    if (!platformAtaInfo) {
+      tx.add(
+        createAssociatedTokenAccountInstruction(
+          platformAuthority.publicKey, // payer — 가스(SOL)는 항상 플랫폼이 부담
+          platformAta,
+          platformAuthority.publicKey,
+          USDC_DEVNET_MINT
+        )
+      );
+    }
+    platformFeeRaw = BigInt(Math.round(platformFeeUsdc * 1e6));
+    tx.add(
+      createTransferCheckedInstruction(
+        advertiserAta,
+        USDC_DEVNET_MINT,
+        platformAta,
+        advertiser.publicKey,
+        platformFeeRaw,
+        6
+      )
+    );
+  }
+
+  // 가스비(SOL)는 항상 플랫폼 지갑이 부담(Gasless) — 광고주는 서명만 해서 자기 USDC 이체를
+  // 승인할 뿐, 네트워크 수수료는 platformAuthority를 명시적 feePayer로 지정해 대신 냄.
+  // (광고주가 낸 5% 플랫폼 수수료가 이 가스비를 충당한다는 설계와 일치)
+  tx.feePayer = platformAuthority.publicKey;
+  const signature = await sendAndConfirmTransaction(connection, tx, [advertiser, platformAuthority], {
+    commitment: "confirmed",
+  });
 
   return {
     signature,
     campaignPda: campaignPda.toBase58(),
     vaultPda: vaultPda.toBase58(),
+    platformFeeUsdc,
     solscanUrl: solscanTxUrl(signature),
   };
 }

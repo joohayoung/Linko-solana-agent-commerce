@@ -144,11 +144,16 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   }
 
   btn.disabled = true;
-  btn.textContent = "등록 중...";
+  btn.textContent = "온체인 예치 처리 중... (몇 초 걸려요)";
   try {
     const data = await api("/api/campaigns", { method: "POST", body: JSON.stringify(payload) });
-    toast("캠페인이 등록됐어요!");
-    setTimeout(() => (location.href = `/advertiser-pixel-setup.html?id=${data.campaign.id}`), 600);
+    const fee = data.campaign?.onchain?.platformFeeUsdc;
+    toast(
+      fee != null
+        ? `캠페인이 등록됐어요! 예산이 온체인 에스크로에 예치됐고, 플랫폼 수수료 ${fee.toFixed(2)} USDC도 함께 정산됐어요.`
+        : "캠페인이 등록됐어요!"
+    );
+    setTimeout(() => (location.href = `/advertiser-pixel-setup.html?id=${data.campaign.id}`), 900);
   } catch (e) {
     toast(e.message);
   } finally {

@@ -27,6 +27,12 @@ export const MOCK_SHOP_BASE_URL =
 // 데모용 고정 환율 (원/USDC)
 export const KRW_PER_USDC = 1400;
 
+// 플랫폼 수수료율 — 캠페인 예산 예치 시, 예산과는 별도로 (예산 × 이 비율)만큼을
+// 광고주 지갑에서 플랫폼 지갑으로 같은 트랜잭션에서 함께 이체함(플랫폼 매출).
+// 온체인 가스비(정산 트랜잭션마다 플랫폼이 대납)도 이 수수료 안에서 충당한다는 전제 —
+// 솔라나 트랜잭션 수수료가 매우 작아(건당 약 5000 lamports) 별도로 미터링하지 않음.
+export const PLATFORM_FEE_RATE = 0.05;
+
 // 데모용 지갑 아이디 목록 — 광고주/플랫폼/크리에이터 역할별로 분리된 지갑
 export const WALLET_IDS = {
   platform: "settlement", // 플랫폼 지갑: settle_commission 실행 권한 + 가스비 대납 (기존 "settlement" 파일 재사용)

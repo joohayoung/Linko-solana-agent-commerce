@@ -111,8 +111,16 @@ async function linkoRequireRoleSession(role, onReady, opts = {}) {
 
   const copy =
     role === "advertiser"
-      ? { title: "지문/얼굴인식으로 광고주 계정을 연결해주세요", sub: "시드문구 없이 1회만 인증하면 이후에는 자동으로 로그인돼요. 캠페인 예산 예치는 플랫폼이 대행해요." }
-      : { title: "지문/얼굴인식으로 지갑을 연결해주세요", sub: "시드문구 없이 1회만 인증하면 이후에는 자동으로 로그인돼요. 가스비는 플랫폼이 대신 내요." };
+      ? {
+          title: "지문/얼굴인식으로 광고주 계정을 연결해주세요",
+          sub: "시드문구 없이 1회만 인증하면 이후에는 자동으로 로그인돼요. 캠페인 예산 예치는 플랫폼이 대행해요.",
+          namePlaceholder: "브랜드명 (선택, 예: 선데이글로우)",
+        }
+      : {
+          title: "지문/얼굴인식으로 지갑을 연결해주세요",
+          sub: "시드문구 없이 1회만 인증하면 이후에는 자동으로 로그인돼요. 가스비는 플랫폼이 대신 내요.",
+          namePlaceholder: "닉네임 (선택, 예: 지수)",
+        };
 
   const wallet = await linkoWaitForWalletWidget();
 
@@ -136,7 +144,14 @@ async function linkoRequireRoleSession(role, onReady, opts = {}) {
   banner.innerHTML = `
     <p style="margin:0 0 4px; font-weight:800; font-size:15.5px;">${copy.title}</p>
     <p style="margin:0 0 16px; color:var(--muted); font-size:13px;">${copy.sub}</p>
-    <p style="margin:0 0 16px; color:var(--muted); font-size:12px;">⚠️ 다른 역할(광고주/크리에이터)로 이미 연결한 적이 있다면, 포털에서 <b>"Create new account"</b>를 선택해야 서로 다른 지갑이 발급돼요. "Sign in"을 누르면 이전에 만든 지갑으로 다시 연결됩니다.</p>
+    <input
+      id="linkoNicknameInput"
+      type="text"
+      placeholder="${copy.namePlaceholder}"
+      maxlength="30"
+      style="display:block; width:220px; margin:0 auto 14px; padding:9px 12px; border:1px solid var(--border, #ddd); border-radius:8px; font-size:13px; text-align:center;"
+    />
+    <p style="margin:0 0 16px; color:var(--muted); font-size:12px;">⚠️ 다른 역할(광고주/크리에이터)로 이미 연결한 적이 있다면, 포털에서 <b>"Create new account"</b>를 선택해야 서로 다른 지갑이 발급돼요. "Sign in"을 누르면 이전에 만든 지갑으로 다시 연결됩니다. (포털 안의 계정 이름 입력칸은 LazorKit 자체 설정이라 여기 닉네임과는 별개예요)</p>
     <span data-linko-connect></span>
   `;
   const main = document.querySelector("main .wrap") || document.body;
@@ -148,7 +163,9 @@ async function linkoRequireRoleSession(role, onReady, opts = {}) {
     if (banner.dataset.handled) return; // 중복 호출 방지
     banner.dataset.handled = "1";
     try {
-      const account = await linkoEnsureAccountForWallet(role, state.walletAddress, opts.name);
+      const nicknameInput = banner.querySelector("#linkoNicknameInput");
+      const typedName = nicknameInput?.value.trim();
+      const account = await linkoEnsureAccountForWallet(role, state.walletAddress, typedName || opts.name);
       banner.remove();
       linkoRenderWalletBadge(role, account);
       onReady(account.id, account);

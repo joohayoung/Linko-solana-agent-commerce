@@ -15,6 +15,15 @@ import { KRW_PER_USDC } from "./config.mjs";
 import { PublicKey } from "@solana/web3.js";
 
 /**
+ * 캠페인의 실제 예산을 USDC로 환산. 캠페인 등록 시점(POST /api/campaigns)에 계산해둔
+ * budgetUsdc가 있으면 그걸 쓰고, 그 전에 만들어진 예전 캠페인이면 budgetKrw로부터 환산.
+ */
+function resolveBudgetUsdc(campaign) {
+  if (typeof campaign.budgetUsdc === "number" && campaign.budgetUsdc > 0) return campaign.budgetUsdc;
+  return Number(campaign.budgetKrw || 1000000) / KRW_PER_USDC;
+}
+
+/**
  * 특정 크리에이터가 특정 캠페인에서 이미 확정 정산을 마친 건수.
  * (이 함수 호출 시점 기준 — 이번 주문은 포함하지 않음, 호출부에서 +1 해서 사용)
  */
@@ -74,11 +83,13 @@ export async function processOrder(orderId) {
     const advertiserWallet = loadWallet(WALLET_IDS.advertiser);
     const advertiserPubkey = advertiserWallet.publicKey.toBase58();
 
-    // 2. 온체인 Campaign PDA / Vault PDA가 없으면 자동 입금 및 에스크로 계정 생성 보장 (3 USDC 예산 잠금)
+    // 2. 온체인 Campaign PDA / Vault PDA가 없으면 자동 입금 및 에스크로 계정 생성 보장.
+    //    (정상 경로에서는 캠페인 등록 시점에 이미 생성돼 있음 — 여기는 그 전에 만들어진
+    //    구캠페인을 위한 안전망. 하드코딩된 값 대신 실제 캠페인 예산을 사용함)
     await ensureCampaignEscrow({
       advertiserWalletId: WALLET_IDS.advertiser,
       campaignId: campaign.id,
-      budgetUsdc: 10,
+      budgetUsdc: resolveBudgetUsdc(campaign),
     });
 
     // 3. 진짜 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC 정산 해제 (Release)

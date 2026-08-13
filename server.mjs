@@ -34,6 +34,24 @@ function sendJson(res, statusCode, body) {
   res.end(json);
 }
 
+/**
+ * 온체인 트랜잭션 실패를 광고주가 이해할 수 있는 일반 문구로 변환.
+ * 원본 에러(시뮬레이션 로그 등 기술적인 내용)는 서버 콘솔에만 남기고, 응답에는 노출하지 않음.
+ */
+function friendlyOnchainError(e) {
+  const msg = String(e?.message || e || "");
+  if (/insufficient (funds|lamports)/i.test(msg)) {
+    return "지갑에 예산이 부족해요. 캠페인 예산만큼 USDC가 충전되어 있는지 확인한 뒤 다시 시도해주세요.";
+  }
+  if (/blockhash not found|block height exceeded|timeout|timed out/i.test(msg)) {
+    return "네트워크 응답이 지연됐어요. 잠시 후 다시 시도해주세요.";
+  }
+  if (/insufficient sol|0x1 .*system|attempt to debit an account/i.test(msg)) {
+    return "지갑 가스비(SOL)가 부족해요. 잠시 후 다시 시도해주세요.";
+  }
+  return "온체인 처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.";
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let raw = "";
@@ -162,8 +180,31 @@ async function handleApi(req, res, url, parts) {
     if (!body.advertiser || !body.product || !body.price || !Array.isArray(body.commissionTiers) || body.commissionTiers.length === 0) {
       return sendJson(res, 400, { error: "advertiser, product, price, commissionTiers는 필수입니다." });
     }
+
+    const campaignId = `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`;
+    const budgetKrw = Number(body.budgetKrw || 1000000);
+    const budgetUsdc = budgetKrw / KRW_PER_USDC;
+
+    // 온체인 예치를 먼저 시도하고, 성공했을 때만 DB에 캠페인을 기록함(실패한 캠페인이 목록에 남지 않게).
+    let onchain;
+    try {
+      const { createCampaignEscrow } = await import("./src/escrow.mjs");
+      const result = await createCampaignEscrow({ campaignId, budgetUsdc });
+      onchain = {
+        campaignPda: result.campaignPda,
+        vaultPda: result.vaultPda,
+        depositTx: result.signature,
+        platformFeeUsdc: result.platformFeeUsdc,
+        solscanUrl: result.solscanUrl,
+      };
+      console.log(`[POST /api/campaigns] ✅ 온체인 예치 완료: ${result.signature}`);
+    } catch (e) {
+      console.error("[POST /api/campaigns] ⚠️ 온체인 예치 실패:", e); // 기술적인 원본 로그는 서버에만 남김
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
+
     const campaign = insert("campaigns", {
-      id: `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`,
+      id: campaignId,
       advertiser: body.advertiser,
       advertiserId: body.advertiserId || null, // 패스키로 로그인한 광고주 계정 id (2단계: 온보딩)
       advertiserWallet: body.advertiserWallet || null, // 위 계정의 실제 지갑 주소
@@ -176,7 +217,9 @@ async function handleApi(req, res, url, parts) {
       currency: "KRW",
       commissionTiers: body.commissionTiers,
       confirmDelayDays: Number(body.confirmDelayDays || 7),
-      budgetKrw: Number(body.budgetKrw || 1000000),
+      budgetKrw,
+      budgetUsdc,
+      onchain, // { campaignPda, vaultPda, depositTx, platformFeeUsdc, solscanUrl }
       // 광고주에게는 노출하지 않고, 등록 순서에 따라 내부적으로 쇼핑몰 스키마를 자동 배정
       // (Gemini가 여러 쇼핑몰의 서로 다른 주문상태 스키마를 정규화하는 동작은 그대로 유지됨)
       thumbnail: body.thumbnail || "/images/campaigns/moisturizer.svg",
