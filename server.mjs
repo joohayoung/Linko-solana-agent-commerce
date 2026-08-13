@@ -611,6 +611,57 @@ async function handleApi(req, res, url, parts) {
     return sendJson(res, 201, { order });
   }
   
+  // POST /api/pixel/conversion  { referralCode, storeId, orderId, amount }
+  // 광고주 스토어에 설치된 구매확정 픽셀(pixel.js)이 결제완료 페이지에서 호출하는 엔드포인트.
+  // referralCode만으로 campaignId/promoterId를 서버가 역으로 찾기 때문에, 픽셀 자체는
+  // 캠페인마다 다시 설치할 필요 없이 광고주 계정(storeId)당 한 번만 설치하면 된다.
+  if (method === "POST" && parts.length === 2 && parts[0] === "pixel" && parts[1] === "conversion") {
+    const body = await readBody(req);
+    const referralCode = (body.referralCode || "").trim();
+    const orderId = (body.orderId || "").trim();
+    const amount = Number(body.amount);
+    if (!referralCode || !orderId || !amount || amount <= 0) {
+      return sendJson(res, 400, { error: "referralCode, orderId, amount는 필수입니다." });
+    }
+
+    const [participation] = findWhere("participations", (p) => p.referralCode === referralCode);
+    if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
+    const campaign = findById("campaigns", participation.campaignId);
+
+    if (body.storeId && campaign.advertiserId && body.storeId !== campaign.advertiserId) {
+      return sendJson(res, 403, { error: "storeId가 이 추천 링크의 캠페인과 일치하지 않습니다." });
+    }
+
+    // 같은 주문번호로 중복 호출되어도(새로고침 등) 두 번 집계되지 않도록 멱등 처리
+    const [existing] = findWhere(
+      "orders",
+      (o) => o.campaignId === campaign.id && o.externalOrderId === orderId
+    );
+    if (existing) {
+      return sendJson(res, 200, { order: existing, action: "duplicate" });
+    }
+
+    const purchasedAt = new Date();
+    const confirmDueAt = new Date(purchasedAt.getTime() + campaign.confirmDelayDays * 24 * 60 * 60 * 1000);
+    const order = insert("orders", {
+      id: uuidv4(),
+      campaignId: campaign.id,
+      referralCode: participation.referralCode,
+      promoterId: participation.promoterId,
+      externalOrderId: orderId,
+      amount,
+      status: "purchased",
+      purchasedAt: purchasedAt.toISOString(),
+      confirmDueAt: confirmDueAt.toISOString(),
+      settledAt: null,
+      settlementTx: null,
+      commissionRateApplied: null,
+      commissionAmountUsdc: null,
+      source: "pixel",
+    });
+    return sendJson(res, 201, { order, action: "created" });
+  }
+
   // GET /api/orders/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "orders") {
     const order = findById("orders", parts[1]);
