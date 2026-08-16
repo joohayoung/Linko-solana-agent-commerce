@@ -15,9 +15,11 @@
     "checkout": "node scripts/07-create-test-order.mjs",
     "settle": "node --env-file=.env scripts/08-run-settlement.mjs",
     "trigger": "node scripts/09-shop-trigger.mjs",
+    "migrate-firestore": "node --env-file=.env scripts/migrate-to-firestore.mjs",
     "start": "node --env-file=.env server.mjs"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^7.11.0",
     "@solana/pay": "^0.2.5",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.3",

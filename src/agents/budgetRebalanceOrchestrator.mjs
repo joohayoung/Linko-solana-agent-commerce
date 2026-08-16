@@ -65,7 +65,7 @@ export async function runBudgetRebalance({ advertiserId }) {
 
   // Budget/Campaign PDA는 광고주의 실제 패스키 지갑 주소로 도출되므로(create_budget/create_campaign이
   // 그 지갑 서명으로 만들어짐), 리밸런싱도 같은 지갑 기준으로 조회·실행해야 진짜 자금을 움직인다.
-  const advertiser = SIMULATE ? null : findById("advertisers", advertiserId);
+  const advertiser = SIMULATE ? null : await findById("advertisers", advertiserId);
   const advertiserWallet = advertiser?.walletAddress || null;
   if (!SIMULATE && !advertiserWallet) {
     throw new Error("이 광고주 계정에 연결된 지갑 주소를 찾을 수 없습니다. 패스키로 다시 로그인해주세요.");
@@ -92,7 +92,7 @@ export async function runBudgetRebalance({ advertiserId }) {
 
   const allocatorResult = await runAllocatorAgent({ a2aMessage, poolUsdc });
 
-  const record = insert("budgetRebalances", {
+  const record = await insert("budgetRebalances", {
     id: uuidv4(),
     advertiserId,
     poolUsdc,

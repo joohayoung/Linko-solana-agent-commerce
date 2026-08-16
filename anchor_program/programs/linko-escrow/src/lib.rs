@@ -19,9 +19,8 @@ pub mod linko_escrow {
         ctx: Context<CreateCampaign>,
         campaign_id: String,
         budget_usdc: u64,
-        platform_authority: Pubkey,
     ) -> Result<()> {
-        instructions::create_campaign::handle_create_campaign(ctx, campaign_id, budget_usdc, platform_authority)
+        instructions::create_campaign::handle_create_campaign(ctx, campaign_id, budget_usdc)
     }
 
     pub fn settle_commission(
@@ -36,12 +35,8 @@ pub mod linko_escrow {
         instructions::close_campaign::handle_close_campaign(ctx)
     }
 
-    pub fn create_budget(
-        ctx: Context<CreateBudget>,
-        amount_usdc: u64,
-        platform_authority: Pubkey,
-    ) -> Result<()> {
-        instructions::create_budget::handle_create_budget(ctx, amount_usdc, platform_authority)
+    pub fn create_budget(ctx: Context<CreateBudget>, amount_usdc: u64) -> Result<()> {
+        instructions::create_budget::handle_create_budget(ctx, amount_usdc)
     }
 
     pub fn budget_campaign(ctx: Context<BudgetCampaign>, amount_usdc: u64) -> Result<()> {

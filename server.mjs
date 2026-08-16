@@ -116,18 +116,18 @@ function slugify(text) {
     .slice(0, 10) || "USER";
 }
 
-function ensureParticipation(promoterId, campaignId) {
-  const [existing] = findWhere(
+async function ensureParticipation(promoterId, campaignId) {
+  const [existing] = await findWhere(
     "participations",
     (p) => p.promoterId === promoterId && p.campaignId === campaignId
   );
   if (existing) return existing;
 
-  const promoter = findById("promoters", promoterId);
-  const campaign = findById("campaigns", campaignId);
+  const promoter = await findById("promoters", promoterId);
+  const campaign = await findById("campaigns", campaignId);
   let code = `${slugify(promoter.name)}-${slugify(campaign.product)}`;
   // 중복이면 접미사 추가
-  const codes = new Set(readAll("participations").map((p) => p.referralCode));
+  const codes = new Set((await readAll("participations")).map((p) => p.referralCode));
   let suffix = 1;
   let finalCode = code;
   while (codes.has(finalCode)) {
@@ -152,13 +152,6 @@ function tierInfo(tiers, cumulativeConfirmedCount) {
   return { currentRate: sorted[idx].rate, nextTier: sorted[idx + 1] || null };
 }
 
-function countSettled(promoterId, campaignId) {
-  return findWhere(
-    "orders",
-    (o) => o.promoterId === promoterId && o.campaignId === campaignId && o.status === "settled"
-  ).length;
-}
-
 // ---------------- API 핸들러 ----------------
 
 async function handleApi(req, res, url, parts) {
@@ -172,7 +165,7 @@ async function handleApi(req, res, url, parts) {
   // GET /api/campaigns?q=...
   if (method === "GET" && parts.length === 1 && parts[0] === "campaigns") {
     const q = url.searchParams.get("q");
-    let campaigns = readAll("campaigns");
+    let campaigns = await readAll("campaigns");
     if (q) {
       campaigns = await searchCampaigns(campaigns, q);
     } else {
@@ -311,7 +304,8 @@ async function handleApi(req, res, url, parts) {
       const budgetKrw = Number(body.budgetKrw || 1000000);
       const budgetUsdc = Number(body.budgetUsdc || budgetKrw / KRW_PER_USDC);
 
-      const campaign = insert("campaigns", {
+      const existingCampaignCount = (await readAll("campaigns")).length;
+      const campaign = await insert("campaigns", {
         id: body.campaignId,
         advertiser: body.advertiser,
         advertiserId: body.advertiserId || null,
@@ -337,7 +331,7 @@ async function handleApi(req, res, url, parts) {
           signedByAdvertiser: true, // 커스터디얼이 아니라 광고주 실제 지갑으로 서명됨을 표시
         },
         thumbnail: body.thumbnail || "/images/campaigns/moisturizer.svg",
-        shopId: SHOP_IDS[readAll("campaigns").length % SHOP_IDS.length],
+        shopId: SHOP_IDS[existingCampaignCount % SHOP_IDS.length],
         status: "active",
       });
       console.log(`[POST /api/campaigns/finalize] ✅ 광고주 실서명 캠페인 등록 완료: ${body.depositTx}`);
@@ -350,7 +344,7 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/campaigns/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "campaigns") {
-    const campaign = findById("campaigns", parts[1]);
+    const campaign = await findById("campaigns", parts[1]);
     if (!campaign) return sendJson(res, 404, { error: "캠페인을 찾을 수 없습니다." });
     return sendJson(res, 200, { campaign });
   }
@@ -358,7 +352,7 @@ async function handleApi(req, res, url, parts) {
   // POST /api/campaigns/:id/participate
   if (method === "POST" && parts.length === 3 && parts[0] === "campaigns" && parts[2] === "participate") {
     const campaignId = parts[1];
-    const campaign = findById("campaigns", campaignId);
+    const campaign = await findById("campaigns", campaignId);
     if (!campaign) return sendJson(res, 404, { error: "캠페인을 찾을 수 없습니다." });
 
     const body = await readBody(req);
@@ -368,29 +362,29 @@ async function handleApi(req, res, url, parts) {
       if (!body.name || !body.walletAddress) {
         return sendJson(res, 400, { error: "promoterId 또는 (name, walletAddress)가 필요합니다." });
       }
-      const promoter = insert("promoters", {
+      const promoter = await insert("promoters", {
         id: uuidv4(),
         name: body.name,
         followers: 0,
         walletAddress: body.walletAddress,
       });
       promoterId = promoter.id;
-    } else if (!findById("promoters", promoterId)) {
+    } else if (!(await findById("promoters", promoterId))) {
       return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
     }
 
-    const participation = ensureParticipation(promoterId, campaignId);
+    const participation = await ensureParticipation(promoterId, campaignId);
     return sendJson(res, 201, { participation });
   }
 
   // GET /api/campaigns/:id/advertiser-detail — 광고주 캠페인 상세(집행현황 + 크리에이터별 실적)
   if (method === "GET" && parts.length === 3 && parts[0] === "campaigns" && parts[2] === "advertiser-detail") {
-    const campaign = findById("campaigns", parts[1]);
+    const campaign = await findById("campaigns", parts[1]);
     if (!campaign) return sendJson(res, 404, { error: "캠페인을 찾을 수 없습니다." });
 
-    const orders = findWhere("orders", (o) => o.campaignId === campaign.id);
+    const orders = await findWhere("orders", (o) => o.campaignId === campaign.id);
     const settled = orders.filter((o) => o.status === "settled");
-    const promoters = readAll("promoters");
+    const promoters = await readAll("promoters");
 
     const byPromoter = {};
     for (const o of orders) {
@@ -431,16 +425,16 @@ async function handleApi(req, res, url, parts) {
 
   // POST /api/campaigns/:id/simulate-confirm  { count } — 데모용: 오래된 미정산 주문부터 N개 확정+정산
   if (method === "POST" && parts.length === 3 && parts[0] === "campaigns" && parts[2] === "simulate-confirm") {
-    const campaign = findById("campaigns", parts[1]);
+    const campaign = await findById("campaigns", parts[1]);
     if (!campaign) return sendJson(res, 404, { error: "캠페인을 찾을 수 없습니다." });
 
     const body = await readBody(req);
     const count = Math.max(1, Math.min(50, Number(body.count) || 1));
 
-    const openOrders = findWhere(
+    const openOrders = (await findWhere(
       "orders",
       (o) => o.campaignId === campaign.id && (o.status === "purchased" || o.status === "pending_confirm")
-    )
+    ))
       .sort((a, b) => new Date(a.purchasedAt) - new Date(b.purchasedAt))
       .slice(0, count);
 
@@ -449,7 +443,7 @@ async function handleApi(req, res, url, parts) {
       // 데모 편의를 위해 confirmDueAt을 "지금"으로 당긴다 (쇼핑몰 상태조회 없이
       // 확정대기기간 경과 여부만으로 자동정산되므로, 이렇게 하면 즉시 정산 대상이 된다).
       if (new Date(o.confirmDueAt) > new Date()) {
-        update("orders", o.id, { confirmDueAt: new Date().toISOString() });
+        await update("orders", o.id, { confirmDueAt: new Date().toISOString() });
       }
       try {
         const result = await processOrder(o.id);
@@ -471,7 +465,7 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/promoters
   if (method === "GET" && parts.length === 1 && parts[0] === "promoters") {
-    return sendJson(res, 200, { promoters: readAll("promoters") });
+    return sendJson(res, 200, { promoters: await readAll("promoters") });
   }
 
   // POST /api/promoters/by-wallet — LazorKit 패스키로 연결된 지갑 주소로 프로모터를 찾거나 신규 생성
@@ -489,13 +483,13 @@ async function handleApi(req, res, url, parts) {
       return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
     }
 
-    const [existing] = findWhere("promoters", (p) => p.walletAddress === walletAddress);
+    const [existing] = await findWhere("promoters", (p) => p.walletAddress === walletAddress);
     if (existing) {
       return sendJson(res, 200, { promoter: existing, created: false });
     }
 
     const name = (body.name || "").trim() || `크리에이터-${walletAddress.slice(0, 4)}`;
-    const promoter = insert("promoters", {
+    const promoter = await insert("promoters", {
       id: uuidv4(),
       name,
       followers: 0,
@@ -519,13 +513,13 @@ async function handleApi(req, res, url, parts) {
       return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
     }
 
-    const [existing] = findWhere("advertisers", (a) => a.walletAddress === walletAddress);
+    const [existing] = await findWhere("advertisers", (a) => a.walletAddress === walletAddress);
     if (existing) {
       return sendJson(res, 200, { advertiser: existing, created: false });
     }
 
     const name = (body.name || "").trim() || `브랜드-${walletAddress.slice(0, 4)}`;
-    const advertiser = insert("advertisers", {
+    const advertiser = await insert("advertisers", {
       id: uuidv4(),
       name,
       walletAddress,
@@ -535,26 +529,33 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/advertisers/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "advertisers") {
-    const advertiser = findById("advertisers", parts[1]);
+    const advertiser = await findById("advertisers", parts[1]);
     if (!advertiser) return sendJson(res, 404, { error: "광고주를 찾을 수 없습니다." });
     return sendJson(res, 200, { advertiser });
   }
 
   // GET /api/promoters/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "promoters") {
-    const promoter = findById("promoters", parts[1]);
+    const promoter = await findById("promoters", parts[1]);
     if (!promoter) return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
     return sendJson(res, 200, { promoter });
   }
 
   // GET /api/promoters/:id/dashboard
   if (method === "GET" && parts.length === 3 && parts[0] === "promoters" && parts[2] === "dashboard") {
-    const promoter = findById("promoters", parts[1]);
+    const promoter = await findById("promoters", parts[1]);
     if (!promoter) return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
 
-    const participations = findWhere("participations", (p) => p.promoterId === promoter.id).map((p) => {
-      const campaign = findById("campaigns", p.campaignId);
-      const cumulative = countSettled(promoter.id, p.campaignId);
+    const [allParticipations, allCampaigns, promoterOrders] = await Promise.all([
+      findWhere("participations", (p) => p.promoterId === promoter.id),
+      readAll("campaigns"),
+      findWhere("orders", (o) => o.promoterId === promoter.id),
+    ]);
+    const campaignsById = Object.fromEntries(allCampaigns.map((c) => [c.id, c]));
+
+    const participations = allParticipations.map((p) => {
+      const campaign = campaignsById[p.campaignId];
+      const cumulative = promoterOrders.filter((o) => o.campaignId === p.campaignId && o.status === "settled").length;
       const { currentRate, nextTier } = tierInfo(campaign.commissionTiers, cumulative);
       return {
         campaignId: p.campaignId,
@@ -566,10 +567,10 @@ async function handleApi(req, res, url, parts) {
       };
     });
 
-    const orders = findWhere("orders", (o) => o.promoterId === promoter.id)
+    const orders = promoterOrders
       .map((o) => ({
         ...o,
-        product: findById("campaigns", o.campaignId)?.product || "-",
+        product: campaignsById[o.campaignId]?.product || "-",
         commissionAmountKrw: o.commissionAmountUsdc != null ? Math.round(o.commissionAmountUsdc * KRW_PER_USDC) : null,
       }))
       .sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
@@ -584,18 +585,18 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/promoters/:id/campaigns/:campaignId — 크리에이터 캠페인 상세(추천URL + 내 실적)
   if (method === "GET" && parts.length === 4 && parts[0] === "promoters" && parts[2] === "campaigns") {
-    const promoter = findById("promoters", parts[1]);
+    const promoter = await findById("promoters", parts[1]);
     if (!promoter) return sendJson(res, 404, { error: "크리에이터를 찾을 수 없습니다." });
-    const campaign = findById("campaigns", parts[3]);
+    const campaign = await findById("campaigns", parts[3]);
     if (!campaign) return sendJson(res, 404, { error: "캠페인을 찾을 수 없습니다." });
 
-    const [participation] = findWhere(
+    const [participation] = await findWhere(
       "participations",
       (p) => p.promoterId === promoter.id && p.campaignId === campaign.id
     );
     if (!participation) return sendJson(res, 404, { error: "아직 참여하지 않은 캠페인입니다." });
 
-    const orders = findWhere("orders", (o) => o.promoterId === promoter.id && o.campaignId === campaign.id)
+    const orders = (await findWhere("orders", (o) => o.promoterId === promoter.id && o.campaignId === campaign.id))
       .map((o) => ({
         ...o,
         commissionAmountKrw: o.commissionAmountUsdc != null ? Math.round(o.commissionAmountUsdc * KRW_PER_USDC) : null,
@@ -627,14 +628,18 @@ async function handleApi(req, res, url, parts) {
   if (method === "GET" && parts.length === 2 && parts[0] === "advertiser" && parts[1] === "dashboard") {
     const advertiserFilter = url.searchParams.get("advertiser");
     const advertiserIdFilter = url.searchParams.get("advertiserId");
-    const campaigns = readAll("campaigns")
+    const [allCampaigns, allOrders, promoters] = await Promise.all([
+      readAll("campaigns"),
+      readAll("orders"),
+      readAll("promoters"),
+    ]);
+    const campaignsById = Object.fromEntries(allCampaigns.map((c) => [c.id, c]));
+    const campaigns = allCampaigns
       .filter((c) => {
         if (advertiserIdFilter) return c.advertiserId === advertiserIdFilter;
         return !advertiserFilter || c.advertiser === advertiserFilter;
       })
       .reverse();
-    const allOrders = readAll("orders");
-    const promoters = readAll("promoters");
 
     const campaignStats = campaigns.map((c) => {
       const orders = allOrders.filter((o) => o.campaignId === c.id);
@@ -659,7 +664,7 @@ async function handleApi(req, res, url, parts) {
       .slice(0, 30)
       .map((o) => ({
         ...o,
-        product: findById("campaigns", o.campaignId)?.product || "-",
+        product: campaignsById[o.campaignId]?.product || "-",
         promoterName: promoters.find((p) => p.id === o.promoterId)?.name || "-",
       }));
 
@@ -668,18 +673,18 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/participations/by-code/:code
   if (method === "GET" && parts.length === 3 && parts[0] === "participations" && parts[1] === "by-code") {
-    const [participation] = findWhere("participations", (p) => p.referralCode === parts[2]);
+    const [participation] = await findWhere("participations", (p) => p.referralCode === parts[2]);
     if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
-    const campaign = findById("campaigns", participation.campaignId);
-    const promoter = findById("promoters", participation.promoterId);
+    const campaign = await findById("campaigns", participation.campaignId);
+    const promoter = await findById("promoters", participation.promoterId);
     return sendJson(res, 200, { participation, campaign, promoter });
   }
 
   // POST /api/participations/:code/simulate-purchase  { count } — 데모용: 내 추천링크로 N건 구매 발생
   if (method === "POST" && parts.length === 3 && parts[0] === "participations" && parts[2] === "simulate-purchase") {
-    const [participation] = findWhere("participations", (p) => p.referralCode === parts[1]);
+    const [participation] = await findWhere("participations", (p) => p.referralCode === parts[1]);
     if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
-    const campaign = findById("campaigns", participation.campaignId);
+    const campaign = await findById("campaigns", participation.campaignId);
 
     const body = await readBody(req);
     const count = Math.max(1, Math.min(50, Number(body.count) || 1));
@@ -692,7 +697,7 @@ async function handleApi(req, res, url, parts) {
 
       createShopOrder(campaign.shopId, orderId, campaign.price);
 
-      const order = insert("orders", {
+      const order = await insert("orders", {
         id: orderId,
         campaignId: campaign.id,
         referralCode: participation.referralCode,
@@ -746,16 +751,16 @@ async function handleApi(req, res, url, parts) {
   // POST /api/checkout  { referralCode, quantity }
   if (method === "POST" && parts.length === 1 && parts[0] === "checkout") {
     const body = await readBody(req);
-    const [participation] = findWhere("participations", (p) => p.referralCode === body.referralCode);
+    const [participation] = await findWhere("participations", (p) => p.referralCode === body.referralCode);
     if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
-    const campaign = findById("campaigns", participation.campaignId);
+    const campaign = await findById("campaigns", participation.campaignId);
     const quantity = Math.max(1, Math.min(20, Number(body.quantity) || 1));
     const amount = campaign.price * quantity;
     const orderId = uuidv4();
     const purchasedAt = new Date();
     const confirmDueAt = new Date(purchasedAt.getTime() + campaign.confirmDelayDays * 24 * 60 * 60 * 1000);
     createShopOrder(campaign.shopId, orderId, amount);
-    const order = insert("orders", {
+    const order = await insert("orders", {
       id: orderId,
       campaignId: campaign.id,
       referralCode: participation.referralCode,
@@ -786,16 +791,16 @@ async function handleApi(req, res, url, parts) {
       return sendJson(res, 400, { error: "referralCode, orderId, amount는 필수입니다." });
     }
 
-    const [participation] = findWhere("participations", (p) => p.referralCode === referralCode);
+    const [participation] = await findWhere("participations", (p) => p.referralCode === referralCode);
     if (!participation) return sendJson(res, 404, { error: "유효하지 않은 추천 링크입니다." });
-    const campaign = findById("campaigns", participation.campaignId);
+    const campaign = await findById("campaigns", participation.campaignId);
 
     if (body.storeId && campaign.advertiserId && body.storeId !== campaign.advertiserId) {
       return sendJson(res, 403, { error: "storeId가 이 추천 링크의 캠페인과 일치하지 않습니다." });
     }
 
     // 같은 주문번호로 중복 호출되어도(새로고침 등) 두 번 집계되지 않도록 멱등 처리
-    const [existing] = findWhere(
+    const [existing] = await findWhere(
       "orders",
       (o) => o.campaignId === campaign.id && o.externalOrderId === orderId
     );
@@ -805,7 +810,7 @@ async function handleApi(req, res, url, parts) {
 
     const purchasedAt = new Date();
     const confirmDueAt = new Date(purchasedAt.getTime() + campaign.confirmDelayDays * 24 * 60 * 60 * 1000);
-    const order = insert("orders", {
+    const order = await insert("orders", {
       id: uuidv4(),
       campaignId: campaign.id,
       referralCode: participation.referralCode,
@@ -826,7 +831,7 @@ async function handleApi(req, res, url, parts) {
 
   // GET /api/orders/:id
   if (method === "GET" && parts.length === 2 && parts[0] === "orders") {
-    const order = findById("orders", parts[1]);
+    const order = await findById("orders", parts[1]);
     if (!order) return sendJson(res, 404, { error: "주문을 찾을 수 없습니다." });
     return sendJson(res, 200, { order });
   }
@@ -834,7 +839,7 @@ async function handleApi(req, res, url, parts) {
   // POST /api/orders/:id/confirm-simulate | /cancel-simulate
   // 데모 버전: 쇼핑몰 상태 조회 없이, 확정대기기간(confirmDelayDays) 경과 여부만으로 정산을 결정한다.
   if (method === "POST" && parts.length === 3 && parts[0] === "orders" && (parts[2] === "confirm-simulate" || parts[2] === "cancel-simulate")) {
-    const order = findById("orders", parts[1]);
+    const order = await findById("orders", parts[1]);
     if (!order) return sendJson(res, 404, { error: "주문을 찾을 수 없습니다." });
     if (order.status === "settled" || order.status === "cancelled") {
       return sendJson(res, 200, { order, action: "already_final" });
@@ -842,19 +847,19 @@ async function handleApi(req, res, url, parts) {
 
     if (parts[2] === "cancel-simulate") {
       // 취소는 주문 자체의 status를 바로 취소로 확정한다 (정산 대상에서 제외).
-      const updated = update("orders", order.id, { status: "cancelled" });
+      const updated = await update("orders", order.id, { status: "cancelled" });
       return sendJson(res, 200, { order: updated, action: "cancelled" });
     }
 
     // confirm-simulate: 데모 편의를 위해 confirmDueAt을 "지금"으로 당겨서,
     // 실제 확정대기기간을 기다리지 않고도 자동정산 로직(대기기간 경과 여부 판단)을 그대로 통과시킨다.
     if (new Date(order.confirmDueAt) > new Date()) {
-      update("orders", order.id, { confirmDueAt: new Date().toISOString() });
+      await update("orders", order.id, { confirmDueAt: new Date().toISOString() });
     }
 
     try {
       const result = await processOrder(order.id);
-      const updated = findById("orders", order.id);
+      const updated = await findById("orders", order.id);
       const commissionAmountKrw =
         updated.commissionAmountUsdc != null ? Math.round(updated.commissionAmountUsdc * KRW_PER_USDC) : null;
       return sendJson(res, 200, { order: { ...updated, commissionAmountKrw }, action: result.action });
@@ -1087,12 +1092,12 @@ async function handleMockShop(req, res, parts) {
 // 우리 체크아웃 시뮬레이터(checkout.html)로 대신 리다이렉트합니다.
 
 async function handleGoRedirect(req, res, code) {
-  const [participation] = findWhere("participations", (p) => p.referralCode === code);
+  const [participation] = await findWhere("participations", (p) => p.referralCode === code);
   if (!participation) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     return res.end("유효하지 않은 추천 링크입니다.");
   }
-  update("participations", participation.id, { clicks: (participation.clicks || 0) + 1 });
+  await update("participations", participation.id, { clicks: (participation.clicks || 0) + 1 });
   // 변경 전
   // res.writeHead(302, { Location: `/checkout.html?ref=${encodeURIComponent(code)}` });
 
