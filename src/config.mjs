@@ -16,6 +16,14 @@ export const USDC_DEVNET_MINT = new PublicKey(
 
 export const WALLETS_DIR = path.resolve(__dirname, "..", "wallets");
 
+// 광고주 패스키 실서명 트랜잭션(LazorKit CPI 래핑)이 Solana 트랜잭션 크기 한도(1232바이트)를
+// 넘기는 문제 때문에, 자주 반복되는 고정 계정들(USDC 민트, 토큰 프로그램, 에스크로 프로그램,
+// 시스템 프로그램)을 주소 룩업 테이블(ALT)에 담아 트랜잭션 크기를 줄인다.
+// scripts/create-lookup-table.mjs로 1회 생성한 뒤 .env에 LINKO_ALT_ADDRESS로 저장해서 씀.
+export const LINKO_ALT_ADDRESS = process.env.LINKO_ALT_ADDRESS
+  ? new PublicKey(process.env.LINKO_ALT_ADDRESS)
+  : null;
+
 // 메인 앱 서버 포트 (server.mjs) — 가짜 쇼핑몰 라우트도 이 서버 안에 함께 마운트됨
 export const APP_PORT = parseInt(process.env.PORT || "3000", 10);
 

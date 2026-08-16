@@ -1,5 +1,6 @@
 let krwPerUsdc = 1400;
 let currentAdvertiserId = null;
+let currentAdvertiserWallet = null;
 let budgetExists = false;
 
 api("/api/config")
@@ -13,11 +14,13 @@ document.getElementById("amountKrw").addEventListener("input", (e) => {
   document.getElementById("usdcHint").textContent = krw ? `온체인에서는 약 ${(krw / krwPerUsdc).toFixed(2)} USDC로 처리돼요` : "";
 });
 
-async function loadStatus(advertiserId) {
+async function loadStatus(advertiserId, walletAddress) {
   currentAdvertiserId = advertiserId;
+  currentAdvertiserWallet = walletAddress || null;
   const statusPanel = document.getElementById("statusPanel");
   try {
-    const info = await api(`/api/advertiser/${advertiserId}/budget`);
+    const query = currentAdvertiserWallet ? `?wallet=${encodeURIComponent(currentAdvertiserWallet)}` : "";
+    const info = await api(`/api/advertiser/${advertiserId}/budget${query}`);
     budgetExists = info.exists;
     if (info.exists) {
       statusPanel.innerHTML = `
@@ -46,25 +49,38 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   const amountKrw = Number(document.getElementById("amountKrw").value);
   if (!amountKrw || amountKrw <= 0) return toast("충전할 금액을 입력해주세요.");
   if (!currentAdvertiserId) return toast("광고주 계정을 먼저 연결해주세요.");
+  if (!currentAdvertiserWallet) return toast("지갑이 아직 연결되지 않았어요. 패스키로 다시 연결해주세요.");
 
   // 반올림 손실 방지: 원 -> USDC 변환에서 소수점을 미리 자르지 않고 그대로 넘김
-  // (서버가 온체인 전송 직전 6자리에서 최종 반올림하므로, 여기서 2자리로 먼저 자르면
-  //  예: 5000원 -> 3.57 USDC -> 4998원처럼 왕복 손실이 생김)
   const amountUsdc = amountKrw / krwPerUsdc;
 
-  // 팝업 차단 방지: 비동기 요청 이후에 새 탭을 열면 "사용자 클릭 직후"가 아니라서 브라우저가
-  // 막을 수 있음 -> 클릭 즉시 빈 탭을 먼저 열어두고, 응답이 오면 그 탭의 주소만 바꿔줌.
   const solscanTab = window.open("", "_blank");
 
   btn.disabled = true;
   const wasExisting = budgetExists;
-  btn.textContent = "온체인 처리 중... (몇 초 걸려요)";
   try {
-    const data = await api(`/api/advertiser/${currentAdvertiserId}/budget`, {
+    // 1) 서버가 인스트럭션 + 주소 룩업 테이블만 조립(서명 없음)
+    btn.textContent = "온체인 충전 준비 중...";
+    const prep = await api(`/api/advertiser/${currentAdvertiserId}/budget/prepare`, {
       method: "POST",
-      body: JSON.stringify({ amountUsdc }),
+      body: JSON.stringify({ advertiserWallet: currentAdvertiserWallet, amountUsdc }),
     });
-    toast(wasExisting ? `${won(amountKrw)}가 추가로 충전됐어요!` : `Budget PDA가 생성되고 ${won(amountKrw)}가 충전됐어요!`);
+
+    // 2) 광고주 실제 지갑(LazorKit 패스키)으로 직접 서명·전송
+    btn.textContent = "지문/얼굴인식으로 서명해주세요...";
+    const wallet = await linkoWaitForWalletWidget();
+    const signResult = await wallet.signAndSendTransaction(prep.instructions, prep.altAddresses);
+    const depositTx = typeof signResult === "string" ? signResult : signResult?.signature;
+    if (!depositTx) throw new Error("서명은 됐는데 트랜잭션 서명값을 못 받았어요. 다시 시도해주세요.");
+
+    // 3) 서버가 온체인에서 실제로 확인한 뒤 최신 잔액을 돌려줌
+    btn.textContent = "충전 확인 중...";
+    const data = await api(`/api/advertiser/${currentAdvertiserId}/budget/finalize`, {
+      method: "POST",
+      body: JSON.stringify({ advertiserWallet: currentAdvertiserWallet, depositTx }),
+    });
+
+    toast(wasExisting ? `내 지갑으로 직접 서명해서 ${won(amountKrw)}가 추가로 충전됐어요!` : `내 지갑으로 직접 서명해서 Budget PDA가 생성되고 ${won(amountKrw)}가 충전됐어요!`);
     if (data.solscanUrl && solscanTab) {
       solscanTab.location = data.solscanUrl;
     } else if (data.solscanUrl) {
@@ -74,7 +90,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
     document.getElementById("amountKrw").value = "";
     document.getElementById("usdcHint").textContent = "";
-    loadStatus(currentAdvertiserId);
+    loadStatus(currentAdvertiserId, currentAdvertiserWallet);
   } catch (e) {
     if (solscanTab) solscanTab.close();
     toast(e.message);
@@ -84,4 +100,4 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   }
 });
 
-linkoRequireAdvertiserSession((id) => loadStatus(id));
+linkoRequireAdvertiserSession((id, advertiser) => loadStatus(id, advertiser?.walletAddress));

@@ -8,6 +8,7 @@
  * 실행: node --env-file=.env server.mjs
  */
 import http from "node:http";
+import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,7 +20,7 @@ import { processOrder } from "./src/settlementEngine.mjs";
 import { calculateTierRate } from "./src/commission.mjs";
 import { searchCampaigns } from "./src/search.mjs";
 import { SHOP_IDS, createOrder as createShopOrder, getOrder as getShopOrder, setState as setShopState } from "./src/mockShop.mjs"; // 정산 로직에는 더 이상 쓰이지 않음(확정대기기간 경과로 자동정산). /mock-shop 데모 라우트에서만 사용.
-import { APP_PORT, KRW_PER_USDC } from "./src/config.mjs";
+import { APP_PORT, KRW_PER_USDC, connection, solscanTxUrl } from "./src/config.mjs";
 import { chat as agentChat } from "./src/agent.mjs";
 import { handlePaymasterRpc } from "./src/paymaster.mjs";
 import { runBudgetRebalance } from "./src/agents/budgetRebalanceOrchestrator.mjs";
@@ -96,7 +97,12 @@ function serveStatic(req, res, pathname) {
       return res.end("Not found");
     }
     const ext = path.extname(filePath);
-    res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
+    // 개발 중 정적 파일(특히 wallet-widget.js) 수정 후 브라우저가 옛 버전을 계속 캐시해서 쓰는
+    // 문제를 겪어서, 캐시를 아예 금지해버림 (프로덕션 배포 시에는 다시 검토 필요).
+    res.writeHead(200, {
+      "Content-Type": MIME[ext] || "application/octet-stream",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+    });
     res.end(data);
   });
 }
@@ -228,6 +234,115 @@ async function handleApi(req, res, url, parts) {
       status: "active",
     });
     return sendJson(res, 201, { campaign });
+  }
+
+  // POST /api/campaigns/prepare  { advertiserWallet, budgetKrw }
+  // 광고주 실제 지갑(LazorKit 패스키)으로 브라우저에서 직접 서명하게 할 때, 서버는 서명 없이
+  // 인스트럭션(+ 트랜잭션 크기 절감용 주소 룩업 테이블)만 조립해서 돌려줌. DB 기록은 안 함.
+  if (method === "POST" && parts.length === 2 && parts[0] === "campaigns" && parts[1] === "prepare") {
+    const body = await readBody(req);
+    if (!body.advertiserWallet) {
+      return sendJson(res, 400, { error: "advertiserWallet이 필요합니다." });
+    }
+    let advertiserPubkey;
+    try {
+      advertiserPubkey = new PublicKey(body.advertiserWallet);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+
+    const campaignId = `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`;
+    const budgetKrw = Number(body.budgetKrw || 1000000);
+    const budgetUsdc = budgetKrw / KRW_PER_USDC;
+
+    try {
+      const { buildCampaignInstructions } = await import("./src/escrow.mjs");
+      const { instructionGroups, campaignPda, vaultPda, platformFeeUsdc, altAddresses } = await buildCampaignInstructions({
+        advertiserPubkey,
+        campaignId,
+        budgetUsdc,
+      });
+      const serializedGroups = instructionGroups.map((group) =>
+        group.map((ix) => ({
+          programId: ix.programId.toBase58(),
+          keys: ix.keys.map((k) => ({ pubkey: k.pubkey.toBase58(), isSigner: k.isSigner, isWritable: k.isWritable })),
+          data: ix.data.toString("base64"),
+        }))
+      );
+      return sendJson(res, 200, {
+        campaignId,
+        campaignPda,
+        vaultPda,
+        platformFeeUsdc,
+        budgetUsdc,
+        budgetKrw,
+        altAddresses,
+        instructionGroups: serializedGroups,
+      });
+    } catch (e) {
+      console.error("[POST /api/campaigns/prepare] ⚠️ 인스트럭션 조립 실패:", e);
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
+  }
+
+  // POST /api/campaigns/finalize — 브라우저에서 실제 서명·전송까지 끝낸 뒤, 그 결과(트랜잭션 서명들)를
+  // 온체인에서 확인하고 나서야 DB에 캠페인을 기록함(클라이언트가 보낸 값을 맹신하지 않음).
+  if (method === "POST" && parts.length === 2 && parts[0] === "campaigns" && parts[1] === "finalize") {
+    const body = await readBody(req);
+    if (!body.campaignId || !body.depositTx) {
+      return sendJson(res, 400, { error: "campaignId, depositTx가 필요합니다." });
+    }
+    if (!body.advertiser || !body.product || !body.price || !Array.isArray(body.commissionTiers) || body.commissionTiers.length === 0) {
+      return sendJson(res, 400, { error: "advertiser, product, price, commissionTiers는 필수입니다." });
+    }
+
+    try {
+      const txSignatures = [body.depositTx, ...(body.extraTxs || [])].filter(Boolean);
+      for (const sig of txSignatures) {
+        const txInfo = await connection.getTransaction(sig, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
+        if (!txInfo || txInfo.meta?.err) {
+          return sendJson(res, 400, { error: "온체인 예치 트랜잭션을 확인하지 못했어요. 다시 시도해주세요." });
+        }
+      }
+
+      const budgetKrw = Number(body.budgetKrw || 1000000);
+      const budgetUsdc = Number(body.budgetUsdc || budgetKrw / KRW_PER_USDC);
+
+      const campaign = insert("campaigns", {
+        id: body.campaignId,
+        advertiser: body.advertiser,
+        advertiserId: body.advertiserId || null,
+        advertiserWallet: body.advertiserWallet || null,
+        product: body.product,
+        description: body.description || "",
+        productUrl: body.productUrl || "",
+        guideline: body.guideline || "",
+        tags: body.tags || [],
+        price: Number(body.price),
+        currency: "KRW",
+        commissionTiers: body.commissionTiers,
+        confirmDelayDays: Number(body.confirmDelayDays || 7),
+        budgetKrw,
+        budgetUsdc,
+        onchain: {
+          campaignPda: body.campaignPda || null,
+          vaultPda: body.vaultPda || null,
+          depositTx: body.depositTx,
+          extraTxs: body.extraTxs || [],
+          platformFeeUsdc: body.platformFeeUsdc ?? null,
+          solscanUrl: solscanTxUrl(body.depositTx),
+          signedByAdvertiser: true, // 커스터디얼이 아니라 광고주 실제 지갑으로 서명됨을 표시
+        },
+        thumbnail: body.thumbnail || "/images/campaigns/moisturizer.svg",
+        shopId: SHOP_IDS[readAll("campaigns").length % SHOP_IDS.length],
+        status: "active",
+      });
+      console.log(`[POST /api/campaigns/finalize] ✅ 광고주 실서명 캠페인 등록 완료: ${body.depositTx}`);
+      return sendJson(res, 201, { campaign });
+    } catch (e) {
+      console.error("[POST /api/campaigns/finalize] ⚠️ 검증/저장 실패:", e);
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
   }
 
   // GET /api/campaigns/:id
@@ -778,7 +893,31 @@ async function handleApi(req, res, url, parts) {
       });
     }
     try {
-      const { getAdvertiserBudgetInfo } = await import("./src/escrow.mjs");
+      // 실서명(패스키) 흐름에서는 ?wallet=<광고주 실제 지갑 주소>로 그 지갑 기준 Budget PDA를 조회.
+      // 없으면 기존처럼 공유 데모 지갑 기준으로 조회(다른 코드와의 하위 호환).
+      const walletParam = url.searchParams.get("wallet");
+      const { getAdvertiserBudgetInfo, getBudgetPda } = await import("./src/escrow.mjs");
+      if (walletParam) {
+        let advertiserPubkey;
+        try {
+          advertiserPubkey = new PublicKey(walletParam);
+        } catch {
+          return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+        }
+        const { budgetPda, vaultPda } = getBudgetPda(advertiserPubkey);
+        const info = await connection.getAccountInfo(budgetPda);
+        if (!info) {
+          return sendJson(res, 200, { exists: false, budgetPda: budgetPda.toBase58(), vaultPda: vaultPda.toBase58(), vaultBalanceUsdc: 0 });
+        }
+        let vaultBalanceUsdc = 0;
+        try {
+          const balance = await connection.getTokenAccountBalance(vaultPda);
+          vaultBalanceUsdc = balance.value.uiAmount || 0;
+        } catch {
+          // 계정 확정 직후라 조회가 아직 안 잡힐 수 있음 — 0으로 폴백
+        }
+        return sendJson(res, 200, { exists: true, budgetPda: budgetPda.toBase58(), vaultPda: vaultPda.toBase58(), vaultBalanceUsdc });
+      }
       const info = await getAdvertiserBudgetInfo();
       return sendJson(res, 200, info);
     } catch (e) {
@@ -802,6 +941,89 @@ async function handleApi(req, res, url, parts) {
       return sendJson(res, 201, { ...result, created: !info.exists });
     } catch (e) {
       console.error("[POST budget] 에러:", e);
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
+  }
+
+  // POST /api/advertiser/:id/budget/prepare  { advertiserWallet, amountUsdc }
+  // 광고주 실제 지갑(LazorKit 패스키)으로 브라우저에서 직접 서명하게 할 때, 서버는 서명 없이
+  // 인스트럭션(+ 트랜잭션 크기 절감용 주소 룩업 테이블)만 조립해서 돌려줌.
+  if (method === "POST" && parts.length === 4 && parts[0] === "advertiser" && parts[2] === "budget" && parts[3] === "prepare") {
+    const body = await readBody(req);
+    const amountUsdc = Number(body.amountUsdc);
+    if (!body.advertiserWallet) {
+      return sendJson(res, 400, { error: "advertiserWallet이 필요합니다." });
+    }
+    if (!amountUsdc || amountUsdc <= 0) {
+      return sendJson(res, 400, { error: "amountUsdc(0보다 큰 값)가 필요합니다." });
+    }
+    let advertiserPubkey;
+    try {
+      advertiserPubkey = new PublicKey(body.advertiserWallet);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+    try {
+      const { buildAdvertiserBudgetInstructions } = await import("./src/escrow.mjs");
+      const { instructions, isNew, budgetPda, vaultPda, altAddresses } = await buildAdvertiserBudgetInstructions({
+        advertiserPubkey,
+        amountUsdc,
+      });
+      const serialized = instructions.map((ix) => ({
+        programId: ix.programId.toBase58(),
+        keys: ix.keys.map((k) => ({ pubkey: k.pubkey.toBase58(), isSigner: k.isSigner, isWritable: k.isWritable })),
+        data: ix.data.toString("base64"),
+      }));
+      return sendJson(res, 200, { instructions: serialized, altAddresses, isNew, budgetPda, vaultPda, amountUsdc });
+    } catch (e) {
+      console.error("[POST /api/advertiser/:id/budget/prepare] ⚠️ 인스트럭션 조립 실패:", e);
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
+  }
+
+  // POST /api/advertiser/:id/budget/finalize  { advertiserWallet, depositTx }
+  // 브라우저에서 실제 서명·전송까지 끝낸 뒤, 그 결과를 온체인에서 직접 확인하고 나서
+  // 최신 Budget 잔액을 돌려줌(클라이언트가 보낸 값을 맹신하지 않음).
+  if (method === "POST" && parts.length === 4 && parts[0] === "advertiser" && parts[2] === "budget" && parts[3] === "finalize") {
+    const body = await readBody(req);
+    if (!body.advertiserWallet || !body.depositTx) {
+      return sendJson(res, 400, { error: "advertiserWallet, depositTx가 필요합니다." });
+    }
+    let advertiserPubkey;
+    try {
+      advertiserPubkey = new PublicKey(body.advertiserWallet);
+    } catch {
+      return sendJson(res, 400, { error: "유효한 솔라나 지갑 주소가 아니에요." });
+    }
+    try {
+      const txInfo = await connection.getTransaction(body.depositTx, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+      if (!txInfo || txInfo.meta?.err) {
+        return sendJson(res, 400, { error: "온체인 충전 트랜잭션을 확인하지 못했어요. 다시 시도해주세요." });
+      }
+
+      const { getBudgetPda } = await import("./src/escrow.mjs");
+      const { budgetPda, vaultPda } = getBudgetPda(advertiserPubkey);
+      let vaultBalanceUsdc = 0;
+      try {
+        const balance = await connection.getTokenAccountBalance(vaultPda);
+        vaultBalanceUsdc = balance.value.uiAmount || 0;
+      } catch {
+        // 확정 직후 계정 조회가 아직 안 잡힐 수 있음 — 0으로 폴백
+      }
+      console.log(`[POST /api/advertiser/:id/budget/finalize] ✅ 광고주 실서명 예산 충전 완료: ${body.depositTx}`);
+      return sendJson(res, 200, {
+        exists: true,
+        budgetPda: budgetPda.toBase58(),
+        vaultPda: vaultPda.toBase58(),
+        vaultBalanceUsdc,
+        depositTx: body.depositTx,
+        solscanUrl: solscanTxUrl(body.depositTx),
+      });
+    } catch (e) {
+      console.error("[POST /api/advertiser/:id/budget/finalize] ⚠️ 검증 실패:", e);
       return sendJson(res, 502, { error: friendlyOnchainError(e) });
     }
   }
@@ -902,8 +1124,16 @@ async function handlePaymasterRoute(req, res) {
 
 // ---------------- 서버 ----------------
 
-const server = http.createServer(async (req, res) => {
+async function requestHandler(req, res) {
   try {
+    // LazorKit의 서명(sign) 요청은 portal.lazor.sh를 숨겨진 크로스오리진 iframe으로 열어 WebAuthn을
+    // 호출한다. 최상위 문서(우리 페이지)가 진짜 HTTPS 보안 컨텍스트가 아니면(http://localhost 포함)
+    // 크롬이 그 iframe 안의 WebAuthn을 "WebAuthn is not supported on sites with TLS certificate
+    // errors"로 막아버리는 걸 실측으로 확인함 — 그래서 로컬 개발도 아래 HTTPS 서버로 띄운다.
+    res.setHeader(
+      "Permissions-Policy",
+      'publickey-credentials-get=(self "https://portal.lazor.sh"), publickey-credentials-create=(self "https://portal.lazor.sh")'
+    );
     const url = new URL(req.url, `http://localhost:${APP_PORT}`);
     // 한글이 포함된 추천코드 등을 위해 각 경로 조각을 디코딩 (url.pathname은 퍼센트인코딩된 상태로 남아있음)
     const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
@@ -917,9 +1147,29 @@ const server = http.createServer(async (req, res) => {
     console.error(e);
     return sendJson(res, 500, { error: e.message });
   }
-});
+}
+
+// certs/localhost.pem, certs/localhost-key.pem이 있으면 HTTPS로, 없으면 기존처럼 HTTP로 실행.
+// 인증서 생성: mkcert 설치 후 `mkcert -install && mkcert -cert-file certs/localhost.pem
+// -key-file certs/localhost-key.pem localhost 127.0.0.1 ::1`
+const CERT_DIR = path.join(__dirname, "certs");
+const CERT_PATH = path.join(CERT_DIR, "localhost.pem");
+const KEY_PATH = path.join(CERT_DIR, "localhost-key.pem");
+const hasCerts = fs.existsSync(CERT_PATH) && fs.existsSync(KEY_PATH);
+
+const server = hasCerts
+  ? https.createServer({ cert: fs.readFileSync(CERT_PATH), key: fs.readFileSync(KEY_PATH) }, requestHandler)
+  : http.createServer(requestHandler);
 
 server.listen(APP_PORT, () => {
   console.log(`=== Linko 서버 실행 중 ===`);
-  console.log(`http://localhost:${APP_PORT}`);
+  if (hasCerts) {
+    console.log(`https://localhost:${APP_PORT}  (HTTPS — 패스키 서명 정상 동작)`);
+  } else {
+    console.log(`http://localhost:${APP_PORT}`);
+    console.log(
+      `⚠️  HTTP 모드입니다. LazorKit 패스키 서명(sign)이 iframe 안에서 막힐 수 있어요.\n` +
+        `   certs/localhost.pem, certs/localhost-key.pem을 만들면 자동으로 HTTPS로 전환됩니다.`
+    );
+  }
 });

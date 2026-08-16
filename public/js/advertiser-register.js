@@ -144,13 +144,50 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
   }
 
   btn.disabled = true;
-  btn.textContent = "온체인 예치 처리 중... (몇 초 걸려요)";
   try {
-    const data = await api("/api/campaigns", { method: "POST", body: JSON.stringify(payload) });
+    // 1) 서버가 인스트럭션 + 주소 룩업 테이블만 조립(서명 없음)
+    btn.textContent = "온체인 예치 준비 중...";
+    const prep = await api("/api/campaigns/prepare", {
+      method: "POST",
+      body: JSON.stringify({ advertiserWallet: payload.advertiserWallet, budgetKrw: payload.budgetKrw }),
+    });
+
+    // 2) 광고주 실제 지갑(LazorKit 패스키)으로 직접 서명·전송. ALT 덕분에 보통 그룹 1개(트랜잭션 1번)로
+    // 끝나지만, 혹시 서버가 크기 문제로 그룹을 나눠 보내면 순서대로 각각 서명받는다.
+    const wallet = await linkoWaitForWalletWidget();
+    const txSignatures = [];
+    for (let i = 0; i < prep.instructionGroups.length; i++) {
+      btn.textContent =
+        prep.instructionGroups.length > 1
+          ? `지문/얼굴인식으로 서명해주세요... (${i + 1}/${prep.instructionGroups.length})`
+          : "지문/얼굴인식으로 서명해주세요...";
+      const signResult = await wallet.signAndSendTransaction(prep.instructionGroups[i], prep.altAddresses);
+      const sig = typeof signResult === "string" ? signResult : signResult?.signature;
+      if (!sig) throw new Error("서명은 됐는데 트랜잭션 서명값을 못 받았어요. 다시 시도해주세요.");
+      txSignatures.push(sig);
+    }
+    const [depositTx, ...extraTxs] = txSignatures;
+
+    // 3) 서버가 온체인에서 실제로 확인한 뒤 DB에 캠페인 기록
+    btn.textContent = "등록 마무리 중...";
+    const data = await api("/api/campaigns/finalize", {
+      method: "POST",
+      body: JSON.stringify({
+        ...payload,
+        campaignId: prep.campaignId,
+        campaignPda: prep.campaignPda,
+        vaultPda: prep.vaultPda,
+        platformFeeUsdc: prep.platformFeeUsdc,
+        budgetUsdc: prep.budgetUsdc,
+        depositTx,
+        extraTxs,
+      }),
+    });
+
     const fee = data.campaign?.onchain?.platformFeeUsdc;
     toast(
       fee != null
-        ? `캠페인이 등록됐어요! 예산이 온체인 에스크로에 예치됐고, 플랫폼 수수료 ${fee.toFixed(2)} USDC도 함께 정산됐어요.`
+        ? `캠페인이 등록됐어요! 내 지갑으로 직접 서명해서 예산이 온체인 에스크로에 예치됐고, 플랫폼 수수료 ${fee.toFixed(2)} USDC도 함께 정산됐어요.`
         : "캠페인이 등록됐어요!"
     );
     setTimeout(() => (location.href = `/advertiser-pixel-setup.html?id=${data.campaign.id}`), 900);
