@@ -59,31 +59,34 @@ const TOOLS = [
   },
 ];
 
-function listActiveCampaigns(advertiserId) {
-  return findWhere("campaigns", (c) => c.advertiserId === advertiserId && c.status === "active").map((c) => ({
-    id: c.id,
-    product: c.product,
-    budgetUsdc: c.budgetUsdc ?? 0,
-    spentUsdc: computeSpentUsdc(c.id),
-  }));
+async function listActiveCampaigns(advertiserId) {
+  const campaigns = await findWhere("campaigns", (c) => c.advertiserId === advertiserId && c.status === "active");
+  return Promise.all(
+    campaigns.map(async (c) => ({
+      id: c.id,
+      product: c.product,
+      budgetUsdc: c.budgetUsdc ?? 0,
+      spentUsdc: await computeSpentUsdc(c.id),
+    }))
+  );
 }
 
-function computeSpentUsdc(campaignId) {
-  const settled = findWhere("orders", (o) => o.campaignId === campaignId && o.status === "settled");
+async function computeSpentUsdc(campaignId) {
+  const settled = await findWhere("orders", (o) => o.campaignId === campaignId && o.status === "settled");
   return settled.reduce((s, o) => s + (o.commissionAmountUsdc || 0), 0);
 }
 
-function getCampaignMetrics(campaignId) {
-  const campaign = findById("campaigns", campaignId);
+async function getCampaignMetrics(campaignId) {
+  const campaign = await findById("campaigns", campaignId);
   if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
 
-  const orders = findWhere("orders", (o) => o.campaignId === campaignId);
+  const orders = await findWhere("orders", (o) => o.campaignId === campaignId);
   const settled = orders.filter((o) => o.status === "settled");
   const cancelled = orders.filter((o) => o.status === "cancelled");
-  const participations = findWhere("participations", (p) => p.campaignId === campaignId);
+  const participations = await findWhere("participations", (p) => p.campaignId === campaignId);
   const clicks = participations.reduce((s, p) => s + (p.clicks || 0), 0);
 
-  const spentUsdc = computeSpentUsdc(campaignId);
+  const spentUsdc = await computeSpentUsdc(campaignId);
   const budgetUsdc = campaign.budgetUsdc ?? 0;
 
   return {
@@ -95,13 +98,13 @@ function getCampaignMetrics(campaignId) {
   };
 }
 
-function getCampaignMomentum(campaignId, days = 7) {
-  const campaign = findById("campaigns", campaignId);
+async function getCampaignMomentum(campaignId, days = 7) {
+  const campaign = await findById("campaigns", campaignId);
   if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
 
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
-  const settled = findWhere("orders", (o) => o.campaignId === campaignId && o.status === "settled" && o.settledAt);
+  const settled = await findWhere("orders", (o) => o.campaignId === campaignId && o.status === "settled" && o.settledAt);
 
   const recentCount = settled.filter((o) => now - new Date(o.settledAt).getTime() <= days * dayMs).length;
   const previousCount = settled.filter((o) => {
@@ -119,7 +122,7 @@ function round4(n) {
   return Math.round(n * 10000) / 10000;
 }
 
-function executeToolCall(name, args) {
+async function executeToolCall(name, args) {
   switch (name) {
     case "list_active_campaigns":
       return listActiveCampaigns(args.advertiserId);
@@ -153,24 +156,27 @@ const JSON_INSTRUCTION = `이제 지금까지 조사한 내용을 바탕으로 �
  * 로컬 폴백: Gemini API가 전부 실패했을 때(쿼터 소진 등) 서버가 직접 규칙 기반으로
  * 점수를 매김 — agent.mjs의 handleLocalFallback과 같은 철학.
  */
-function localFallback(advertiserId) {
-  const campaigns = listActiveCampaigns(advertiserId).map((c) => {
-    const metrics = getCampaignMetrics(c.id);
-    const momentum = getCampaignMomentum(c.id).momentumRatio;
-    const score = Math.max(
-      0,
-      Math.min(100, Math.round(metrics.conversionRate * 300 + metrics.budgetUsedRate * 20 - metrics.cancelRate * 200 + (momentum - 1) * 10))
-    );
-    const signal = metrics.cancelRate > CANCEL_EXCLUDE_THRESHOLD ? "exclude" : score >= 60 ? "strong" : "weak";
-    return {
-      campaignId: c.id,
-      product: c.product,
-      performanceScore: score,
-      signal,
-      metrics: { conversionRate: metrics.conversionRate, budgetUsedRate: metrics.budgetUsedRate, momentum, cancelRate: metrics.cancelRate },
-      reasoning: "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
-    };
-  });
+async function localFallback(advertiserId) {
+  const activeCampaigns = await listActiveCampaigns(advertiserId);
+  const campaigns = await Promise.all(
+    activeCampaigns.map(async (c) => {
+      const metrics = await getCampaignMetrics(c.id);
+      const momentum = (await getCampaignMomentum(c.id)).momentumRatio;
+      const score = Math.max(
+        0,
+        Math.min(100, Math.round(metrics.conversionRate * 300 + metrics.budgetUsedRate * 20 - metrics.cancelRate * 200 + (momentum - 1) * 10))
+      );
+      const signal = metrics.cancelRate > CANCEL_EXCLUDE_THRESHOLD ? "exclude" : score >= 60 ? "strong" : "weak";
+      return {
+        campaignId: c.id,
+        product: c.product,
+        performanceScore: score,
+        signal,
+        metrics: { conversionRate: metrics.conversionRate, budgetUsedRate: metrics.budgetUsedRate, momentum, cancelRate: metrics.cancelRate },
+        reasoning: "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+      };
+    })
+  );
   return {
     advertiserId,
     summary: `Gemini 응답을 받지 못해 규칙 기반 폴백으로 ${campaigns.length}개 캠페인을 평가했습니다.`,
@@ -200,7 +206,7 @@ export async function runAnalystAgent({ advertiserId }) {
     return { output, transcript, usedFallback: false };
   } catch (e) {
     console.log(`[analystAgent] Gemini 실패 → 로컬 폴백: ${e.message}`);
-    return { output: localFallback(advertiserId), transcript: [{ type: "fallback", reason: e.message }], usedFallback: true };
+    return { output: await localFallback(advertiserId), transcript: [{ type: "fallback", reason: e.message }], usedFallback: true };
   }
 }
 

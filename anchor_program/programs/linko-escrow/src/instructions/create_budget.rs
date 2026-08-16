@@ -40,14 +40,12 @@ pub struct CreateBudget<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_create_budget(
-    ctx: Context<CreateBudget>,
-    amount_usdc: u64,
-    platform_authority: Pubkey,
-) -> Result<()> {
+pub fn handle_create_budget(ctx: Context<CreateBudget>, amount_usdc: u64) -> Result<()> {
     let budget = &mut ctx.accounts.budget;
     budget.advertiser = ctx.accounts.advertiser.key();
-    budget.platform_authority = platform_authority;
+    // 계정도 인스트럭션 인자도 아닌 상수(PLATFORM_AUTHORITY) — LazorKit CPI 래핑 오버헤드 때문에
+    // 트랜잭션 크기 한도를 넘기던 문제를 해결하려고 아예 인스트럭션에서 제거함(constants.rs 참고).
+    budget.platform_authority = PLATFORM_AUTHORITY;
     budget.budget_usdc = amount_usdc;
     budget.allocated_usdc = 0;
     budget.mint = ctx.accounts.mint.key();

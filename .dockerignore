@@ -1,0 +1,16 @@
+# 빌드 컨텍스트를 최소화 + 비밀키가 이미지에 들어가는 걸 이중으로 방지.
+# Dockerfile이 필요한 파일(server.mjs, src/, public/)만 명시적으로 COPY하므로 원래도
+# 아래 항목들은 이미지에 안 들어가지만, 빌드 컨텍스트 업로드 자체를 줄이기 위해 제외한다.
+node_modules
+.git
+.env
+certs/
+wallets/
+data/
+.claude/
+anchor_program/
+wallet-widget/
+*.md
+*.pptx
+tsconfig.json
+data-model.md

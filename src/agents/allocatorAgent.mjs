@@ -86,8 +86,8 @@ const JSON_INSTRUCTION = `이번 실행 전체를 종합한 총평만 아래 스
 개별 캠페인 금액은 이미 apply_topup 결과로 반영됐으니 다시 계산하지 마세요.
 { "summary": string }`;
 
-function getCampaignBudgetState(campaignId) {
-  const campaign = findById("campaigns", campaignId);
+async function getCampaignBudgetState(campaignId) {
+  const campaign = await findById("campaigns", campaignId);
   if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
   const budgetUsdc = campaign.budgetUsdc ?? 0;
   const spentUsdc = campaign.spentUsdc ?? 0;
@@ -99,11 +99,11 @@ function getCampaignBudgetState(campaignId) {
  * (§9 가드레일: 온체인 성공 후에만 반영 — 실패한 트랜잭션은 campaigns.json에 안 남김).
  */
 async function executeOnChainTopup(campaignId, amountUsdc, advertiserWallet) {
-  const campaign = findById("campaigns", campaignId);
+  const campaign = await findById("campaigns", campaignId);
   const amountKrw = Math.round(amountUsdc * KRW_PER_USDC);
 
   if (SIMULATE) {
-    update("campaigns", campaignId, {
+    await update("campaigns", campaignId, {
       budgetUsdc: Math.round(((campaign.budgetUsdc || 0) + amountUsdc) * 100) / 100,
       budgetKrw: (campaign.budgetKrw || 0) + amountKrw,
     });
@@ -115,7 +115,7 @@ async function executeOnChainTopup(campaignId, amountUsdc, advertiserWallet) {
   }
 
   const { signature, solscanUrl } = await budgetCampaign({ campaignId, amountUsdc, advertiserWallet });
-  update("campaigns", campaignId, {
+  await update("campaigns", campaignId, {
     budgetUsdc: Math.round(((campaign.budgetUsdc || 0) + amountUsdc) * 100) / 100,
     budgetKrw: (campaign.budgetKrw || 0) + amountKrw,
   });

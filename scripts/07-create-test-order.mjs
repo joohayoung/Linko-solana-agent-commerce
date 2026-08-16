@@ -20,10 +20,10 @@ async function main() {
     process.exit(1);
   }
 
-  const campaign = findById("campaigns", campaignId);
+  const campaign = await findById("campaigns", campaignId);
   if (!campaign) throw new Error(`캠페인 없음: ${campaignId}`);
 
-  const [participation] = findWhere(
+  const [participation] = await findWhere(
     "participations",
     (p) => p.promoterId === promoterId && p.campaignId === campaignId
   );
@@ -49,7 +49,7 @@ async function main() {
     throw new Error(`가짜 쇼핑몰 주문 생성 실패 (${res.status}). mock-shops 서버가 실행 중인지 확인하세요 (npm run mock-shops).`);
   }
 
-  const order = insert("orders", {
+  const order = await insert("orders", {
     id: orderId,
     campaignId,
     referralCode: participation.referralCode,

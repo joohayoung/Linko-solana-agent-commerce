@@ -114,10 +114,10 @@ const TOOL_DECLARATIONS = [
 
 // ─────────── 도구 실행 ───────────
 
-function executeToolCall(name, args) {
+async function executeToolCall(name, args) {
   switch (name) {
     case "get_campaigns": {
-      let campaigns = readAll("campaigns").filter(
+      let campaigns = (await readAll("campaigns")).filter(
         (c) => c.status === "active"
       );
       if (args.query) {
@@ -152,7 +152,7 @@ function executeToolCall(name, args) {
     }
 
     case "get_campaign_detail": {
-      const campaign = findById("campaigns", args.campaignId);
+      const campaign = await findById("campaigns", args.campaignId);
       if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
       return {
         ...campaign,
@@ -170,20 +170,20 @@ function executeToolCall(name, args) {
     }
 
     case "get_promoter_dashboard": {
-      const promoter = findById("promoters", args.promoterId);
+      const promoter = await findById("promoters", args.promoterId);
       if (!promoter) return { error: "크리에이터를 찾을 수 없습니다." };
 
-      const participations = findWhere(
-        "participations",
-        (p) => p.promoterId === promoter.id
-      ).map((p) => {
-        const campaign = findById("campaigns", p.campaignId);
-        const settled = findWhere(
-          "orders",
-          (o) =>
-            o.promoterId === promoter.id &&
-            o.campaignId === p.campaignId &&
-            o.status === "settled"
+      const [rawParticipations, campaigns, orders] = await Promise.all([
+        findWhere("participations", (p) => p.promoterId === promoter.id),
+        readAll("campaigns"),
+        findWhere("orders", (o) => o.promoterId === promoter.id),
+      ]);
+      const campaignsById = Object.fromEntries(campaigns.map((c) => [c.id, c]));
+
+      const participations = rawParticipations.map((p) => {
+        const campaign = campaignsById[p.campaignId];
+        const settled = orders.filter(
+          (o) => o.campaignId === p.campaignId && o.status === "settled"
         );
         const rate = calculateTierRate(
           campaign.commissionTiers,
@@ -198,10 +198,6 @@ function executeToolCall(name, args) {
         };
       });
 
-      const orders = findWhere(
-        "orders",
-        (o) => o.promoterId === promoter.id
-      );
       const settledOrders = orders.filter((o) => o.status === "settled");
       const totalUsdc = settledOrders.reduce(
         (s, o) => s + (o.commissionAmountUsdc || 0),
@@ -223,12 +219,12 @@ function executeToolCall(name, args) {
     }
 
     case "get_promoter_campaign_detail": {
-      const promoter = findById("promoters", args.promoterId);
+      const promoter = await findById("promoters", args.promoterId);
       if (!promoter) return { error: "크리에이터를 찾을 수 없습니다." };
-      const campaign = findById("campaigns", args.campaignId);
+      const campaign = await findById("campaigns", args.campaignId);
       if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
 
-      const [participation] = findWhere(
+      const [participation] = await findWhere(
         "participations",
         (p) =>
           p.promoterId === promoter.id && p.campaignId === campaign.id
@@ -236,7 +232,7 @@ function executeToolCall(name, args) {
       if (!participation)
         return { error: "이 캠페인에 아직 참여하지 않았습니다." };
 
-      const orders = findWhere(
+      const orders = await findWhere(
         "orders",
         (o) =>
           o.promoterId === promoter.id && o.campaignId === campaign.id
@@ -261,7 +257,7 @@ function executeToolCall(name, args) {
     }
 
     case "calculate_earnings": {
-      const campaign = findById("campaigns", args.campaignId);
+      const campaign = await findById("campaigns", args.campaignId);
       if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
 
       const count = Math.max(1, Math.min(500, args.salesCount || 1));
@@ -306,7 +302,7 @@ function executeToolCall(name, args) {
     }
 
     case "generate_ad_copy": {
-      const campaign = findById("campaigns", args.campaignId);
+      const campaign = await findById("campaigns", args.campaignId);
       if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
       return {
         product: campaign.product,
@@ -449,7 +445,7 @@ export async function chat(history, userMessage, role = "general") {
       console.log(`[Agent] 도구 호출: ${name}(${JSON.stringify(args)})`);
 
       // 도구 실행
-      const result = executeToolCall(name, args || {});
+      const result = await executeToolCall(name, args || {});
 
       // functionResponse를 history에 추가
       contents.push({
@@ -492,14 +488,14 @@ export async function chat(history, userMessage, role = "general") {
  * Gemini API 일일 무료 쿼터가 소진(429)되었을 때 유저에게 에러를 띄우지 않고
  * 내부 도구를 직접 수행하여 동일하게 고품질 답변을 생성하는 안전장치
  */
-function handleLocalFallback(userMessage, role, history) {
+async function handleLocalFallback(userMessage, role, history) {
   const msg = userMessage.toLowerCase();
   let reply = "";
 
   // 1. 광고주 관점 질의 (예산 소진, 요율 구조, 성과 분석 등)
   if (role === "advertiser" || msg.includes("예산") || msg.includes("소진") || msg.includes("광고주")) {
-    const campaigns = executeToolCall("get_campaigns", { query: "선크림" });
-    const c = campaigns[0] || executeToolCall("get_campaigns", {})[0];
+    const campaigns = await executeToolCall("get_campaigns", { query: "선크림" });
+    const c = campaigns[0] || (await executeToolCall("get_campaigns", {}))[0];
     
     if (c) {
       const tiersStr = c.commissionTiers.map((t) => `  - **${t.range}**: 비율 **${t.rate}** (건당 ${t.rewardPerSale})`).join("\n");
@@ -515,7 +511,7 @@ function handleLocalFallback(userMessage, role, history) {
   }
   // 2. 크리에이터 실적 요약
   else if (msg.includes("실적") || msg.includes("요약") || (msg.includes("목록") && !msg.includes("추천"))) {
-    const data = executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
+    const data = await executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
     if (data.error) {
       reply = `크리에이터 실적 조회 중 오류가 발생했습니다: ${data.error}`;
     } else {
@@ -530,7 +526,7 @@ function handleLocalFallback(userMessage, role, history) {
   }
   // 1. 광고 문구 / 카피 작성 (6번 기능)
   if (msg.includes("문구") || msg.includes("카피") || msg.includes("릴스") || msg.includes("작성")) {
-    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const campaigns = (await readAll("campaigns")).filter(c => c.status === "active");
     const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("마스크") || c.product.includes("선크림")) || campaigns[0];
     
     reply = `✨ **[${targetC.advertiser}] ${targetC.product} 맞춤 인스타그램 / 릴스 홍보 문구** ✨\n\n` +
@@ -542,7 +538,7 @@ function handleLocalFallback(userMessage, role, history) {
   }
   // 2. 수익 시뮬레이션 계산 (5번 기능)
   else if (msg.includes("얼마") || msg.includes("정산받아") || msg.includes("수익") || msg.includes("계산") || msg.includes("팔면") || msg.includes("개")) {
-    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const campaigns = (await readAll("campaigns")).filter(c => c.status === "active");
     const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("마스크") || c.product.includes("토너") || c.product.includes("선크림")) || campaigns[0];
     
     const numMatch = msg.match(/(\d+)\s*(개|건|회|개수)/);
@@ -568,9 +564,9 @@ function handleLocalFallback(userMessage, role, history) {
   }
   // 3. 개별 캠페인 성과 상세 조회 (4번 기능)
   else if (msg.includes("클릭") || msg.includes("확정 건수") || msg.includes("확정건수") || msg.includes("남았는지") || (msg.includes("내") && msg.includes("성과"))) {
-    const campaigns = readAll("campaigns").filter(c => c.status === "active");
+    const campaigns = (await readAll("campaigns")).filter(c => c.status === "active");
     const targetC = campaigns.find(c => msg.includes(c.product) || c.product.includes("토너") || c.product.includes("클렌징폼") || c.product.includes("선크림")) || campaigns[0];
-    const data = executeToolCall("get_promoter_campaign_detail", { promoterId: "promoter-jisu", campaignId: targetC.id });
+    const data = await executeToolCall("get_promoter_campaign_detail", { promoterId: "promoter-jisu", campaignId: targetC.id });
 
     if (data.error) {
       reply = `📊 **[${targetC.advertiser}] ${targetC.product} 성과 요약**\n\n` +
@@ -592,7 +588,7 @@ function handleLocalFallback(userMessage, role, history) {
   }
   // 4. 크리에이터 전체 실적 요약 (2번 기능)
   else if (msg.includes("실적") || msg.includes("요약") || (msg.includes("목록") && !msg.includes("추천"))) {
-    const data = executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
+    const data = await executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
     if (data.error) {
       reply = `크리에이터 실적 조회 중 오류가 발생했습니다: ${data.error}`;
     } else {
@@ -613,7 +609,7 @@ function handleLocalFallback(userMessage, role, history) {
     msg.includes("마스크") || msg.includes("쿨링") || msg.includes("화장품") ||
     msg.includes("토너") || msg.includes("세럼") || msg.includes("크림") || msg.includes("히알루론산")
   ) {
-    const allActive = readAll("campaigns").filter(c => c.status === "active");
+    const allActive = (await readAll("campaigns")).filter(c => c.status === "active");
     
     const keywords = msg
       .replace(/(추천해줘|추천|찾아줘|찾아|관련|캠페인|제품|상품|있어|알려줘|해줘)/g, "")
@@ -654,7 +650,7 @@ function handleLocalFallback(userMessage, role, history) {
       reply = `안녕하세요! Linko 광고주 전용 AI 어시스턴트 링코입니다 👔\n\n` +
         `선데이글로우 브랜드의 캠페인 예산 현황, 리워드 요율 구조, 집행 실적 등을 물어보시면 자세히 안내해 드릴게요!`;
     } else {
-      const data = executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
+      const data = await executeToolCall("get_promoter_dashboard", { promoterId: "promoter-jisu" });
       reply = `안녕하세요! Linko AI 어시스턴트 링코입니다 🤖\n\n` +
         `현재 지수님의 누적 정산금은 **${data.totalEarnedUsdc.toFixed(2)} USDC** (약 ${data.totalEarnedKrw.toLocaleString()}원)이며 총 ${data.totalCampaigns}개 캠페인에 참여 중입니다.\n\n` +
         `무엇을 도와드릴까요? (실적 분석, 캠페인 추천, 수익 시뮬레이션, 광고 문구 작성 가능)`;

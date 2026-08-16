@@ -144,8 +144,9 @@ export async function buildCampaignInstructions({ advertiserPubkey, campaignId, 
   const rawAmount = BigInt(Math.round(budgetUsdc * 1e6)); // USDC 6 decimals
   const budgetBuf = Buffer.alloc(8);
   budgetBuf.writeBigUInt64LE(rawAmount, 0);
-  const platformAuthorityBuf = platformAuthority.publicKey.toBuffer();
-  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf, platformAuthorityBuf]);
+  // platform_authority는 이제 인스트럭션 인자가 아니라 온체인 프로그램 상수(PLATFORM_AUTHORITY) —
+  // LazorKit CPI 래핑 오버헤드까지 더해지면 가끔 트랜잭션 크기 한도를 넘기던 문제를 해결함.
+  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf]);
 
   const keys = [
     { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
@@ -202,9 +203,8 @@ export async function createCampaignEscrow({ advertiserWalletId = WALLET_IDS.adv
   const budgetBuf = Buffer.alloc(8);
   budgetBuf.writeBigUInt64LE(rawAmount, 0);
 
-  const platformAuthorityBuf = platformAuthority.publicKey.toBuffer(); // 32바이트 Pubkey
-
-  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf, platformAuthorityBuf]);
+  // platform_authority는 이제 인스트럭션 인자가 아니라 온체인 프로그램 상수(PLATFORM_AUTHORITY).
+  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf]);
 
   const keys = [
     { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
@@ -536,7 +536,6 @@ async function ensureAdvertiserPrereqAccounts({ advertiserPubkey, needsSolTopUp 
  * scripts/create-lookup-table.mjs로 미리 만들어둔 LINKO_ALT_ADDRESS를 재사용.
  */
 export async function buildAdvertiserBudgetInstructions({ advertiserPubkey, amountUsdc }) {
-  const platformAuthority = loadWallet(WALLET_IDS.platform);
   const { budgetPda, vaultPda } = getBudgetPda(advertiserPubkey);
   const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiserPubkey, true);
 
@@ -551,34 +550,28 @@ export async function buildAdvertiserBudgetInstructions({ advertiserPubkey, amou
   const amountBuf = Buffer.alloc(8);
   amountBuf.writeBigUInt64LE(rawAmount, 0);
 
-  let ixData;
-  let keys;
-  if (isNew) {
-    const platformAuthorityBuf = platformAuthority.publicKey.toBuffer();
-    ixData = Buffer.concat([disc, amountBuf, platformAuthorityBuf]);
-    keys = [
-      { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
-      { pubkey: budgetPda, isSigner: false, isWritable: true },
-      { pubkey: vaultPda, isSigner: false, isWritable: true },
-      { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
-      { pubkey: advertiserAta, isSigner: false, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-    ];
-  } else {
-    ixData = Buffer.concat([disc, amountBuf]);
-    keys = [
-      { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
-      { pubkey: budgetPda, isSigner: false, isWritable: true },
-      { pubkey: vaultPda, isSigner: false, isWritable: true },
-      { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
-      { pubkey: advertiserAta, isSigner: false, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-    ];
-  }
+  // platform_authority는 이제 인스트럭션 인자도 계정도 아니라 온체인 프로그램에 상수로 박혀있음
+  // (anchor_program/.../constants.rs의 PLATFORM_AUTHORITY) — LazorKit CPI 래핑 오버헤드까지
+  // 더해지면 트랜잭션 크기 한도를 넘기던 문제라 아예 인스트럭션에서 제거해서 해결함.
+  // create_budget/top_up_budget 계정 구성이 동일해짐.
+  const ixData = Buffer.concat([disc, amountBuf]);
+  const keys = [
+    { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
+    { pubkey: budgetPda, isSigner: false, isWritable: true },
+    { pubkey: vaultPda, isSigner: false, isWritable: true },
+    { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+    { pubkey: advertiserAta, isSigner: false, isWritable: true },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+  ];
+  if (isNew) keys.push({ pubkey: SystemProgram.programId, isSigner: false, isWritable: false });
 
   const instructions = [new TransactionInstruction({ programId: ESCROW_PROGRAM_ID, keys, data: ixData })];
 
+  // ALT는 필수(없으면 "Transaction too large"). create_budget이 platform_authority를
+  // 32바이트 인스트럭션 인자로 넘기던 시절엔 ALT를 켜도 LazorKit CPI 래핑 오버헤드까지
+  // 더해지면 한도(1232바이트)를 근소하게 넘겨서, LazorKit이 CPI 실행 자체를 거부하고도
+  // 트랜잭션은 성공으로 처리해버려 Budget PDA가 조용히 안 만들어지는 문제가 있었음 —
+  // platform_authority를 계정 참조로 바꾸고 온체인 프로그램을 업그레이드해서 해결.
   return {
     instructions,
     isNew,

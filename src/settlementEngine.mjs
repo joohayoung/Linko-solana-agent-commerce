@@ -27,11 +27,12 @@ function resolveBudgetUsdc(campaign) {
  * 특정 크리에이터가 특정 캠페인에서 이미 확정 정산을 마친 건수.
  * (이 함수 호출 시점 기준 — 이번 주문은 포함하지 않음, 호출부에서 +1 해서 사용)
  */
-function countAlreadySettled(promoterId, campaignId) {
-  return findWhere(
+async function countAlreadySettled(promoterId, campaignId) {
+  const orders = await findWhere(
     "orders",
     (o) => o.promoterId === promoterId && o.campaignId === campaignId && o.status === "settled"
-  ).length;
+  );
+  return orders.length;
 }
 
 /**
@@ -42,13 +43,13 @@ function countAlreadySettled(promoterId, campaignId) {
  * @returns {Promise<{action: "settled"|"waiting"|"already_final", detail: object}>}
  */
 export async function processOrder(orderId) {
-  const order = findById("orders", orderId);
+  const order = await findById("orders", orderId);
   if (!order) throw new Error(`주문을 찾을 수 없음: ${orderId}`);
   if (order.status === "settled" || order.status === "cancelled") {
     return { action: "already_final", detail: order };
   }
 
-  const campaign = findById("campaigns", order.campaignId);
+  const campaign = await findById("campaigns", order.campaignId);
   if (!campaign) throw new Error(`캠페인을 찾을 수 없음: ${order.campaignId}`);
 
   // 확정대기기간이 아직 안 지났으면 대기
@@ -56,7 +57,7 @@ export async function processOrder(orderId) {
   const confirmDueAt = new Date(order.confirmDueAt);
   if (now < confirmDueAt) {
     if (order.status !== "pending_confirm") {
-      update("orders", orderId, { status: "pending_confirm" });
+      await update("orders", orderId, { status: "pending_confirm" });
     }
     return {
       action: "waiting",
@@ -65,12 +66,12 @@ export async function processOrder(orderId) {
   }
 
   // 확정대기기간이 지났고 취소되지 않았다면 자동 확정 → 누적 확정 건수 → 요율 결정 → 커미션 계산
-  const cumulativeCount = countAlreadySettled(order.promoterId, order.campaignId) + 1;
+  const cumulativeCount = (await countAlreadySettled(order.promoterId, order.campaignId)) + 1;
   const rate = calculateTierRate(campaign.commissionTiers, cumulativeCount);
   const commissionUsdc = calculateCommissionUsdc(order.amount, rate, KRW_PER_USDC);
 
   // 5. 크리에이터 지갑 조회 후 Anchor 온체인 에스크로 정산 (또는 Solana Pay 정산) 실행
-  const promoter = findById("promoters", order.promoterId);
+  const promoter = await findById("promoters", order.promoterId);
   if (!promoter) throw new Error(`크리에이터를 찾을 수 없음: ${order.promoterId}`);
 
   let signature, solscanUrl;
@@ -122,7 +123,7 @@ export async function processOrder(orderId) {
     solscanUrl = res.solscanUrl;
   }
 
-  const updated = update("orders", orderId, {
+  const updated = await update("orders", orderId, {
     status: "settled",
     settledAt: now.toISOString(),
     settlementTx: signature,
@@ -140,7 +141,7 @@ export async function processOrder(orderId) {
  * purchased/pending_confirm 상태인 모든 주문을 순회하며 처리합니다.
  */
 export async function processAllOpenOrders() {
-  const orders = readAll("orders").filter(
+  const orders = (await readAll("orders")).filter(
     (o) => o.status === "purchased" || o.status === "pending_confirm"
   );
   const results = [];

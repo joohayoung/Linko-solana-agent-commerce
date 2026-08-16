@@ -60,9 +60,21 @@ export async function handlePaymasterRpc(body) {
         const tx = VersionedTransaction.deserialize(Buffer.from(txBase64, "base64"));
         tx.sign([platformKeypair]);
         const raw = tx.serialize();
-        const signature = await connection.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 3 });
-        await connection.confirmTransaction(signature, "confirmed");
-        return { jsonrpc: "2.0", id, result: { signature } };
+        try {
+          const signature = await connection.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 3 });
+          await connection.confirmTransaction(signature, "confirmed");
+          return { jsonrpc: "2.0", id, result: { signature } };
+        } catch (sendErr) {
+          // sendRawTransaction의 preflight 실패 응답엔 프로그램 로그가 비어있는 경우가 있어서,
+          // 실패 원인을 정확히 보려고 같은 트랜잭션을 다시 시뮬레이션해서 전체 로그를 남긴다.
+          try {
+            const sim = await connection.simulateTransaction(tx, { sigVerify: false, replaceRecentBlockhash: true });
+            console.error("[paymaster] signAndSendTransaction 실패 — 재시뮬레이션 로그:", JSON.stringify(sim.value.logs, null, 2));
+          } catch (simErr) {
+            console.error("[paymaster] 재시뮬레이션도 실패:", simErr.message);
+          }
+          throw sendErr;
+        }
       }
 
       default:

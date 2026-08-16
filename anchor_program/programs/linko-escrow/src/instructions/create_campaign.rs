@@ -45,13 +45,14 @@ pub fn handle_create_campaign(
     ctx: Context<CreateCampaign>,
     campaign_id: String,
     budget_usdc: u64,
-    platform_authority: Pubkey,
 ) -> Result<()> {
     require!(campaign_id.len() <= 36, ErrorCode::CampaignIdTooLong);
 
     let campaign = &mut ctx.accounts.campaign;
     campaign.advertiser = ctx.accounts.advertiser.key();
-    campaign.platform_authority = platform_authority;
+    // 계정도 인스트럭션 인자도 아닌 상수(PLATFORM_AUTHORITY) — create_budget과 동일한 이유로
+    // LazorKit CPI 래핑 오버헤드 때문에 트랜잭션 크기 한도를 가끔 넘기던 문제를 해결함.
+    campaign.platform_authority = PLATFORM_AUTHORITY;
     campaign.campaign_id = campaign_id;
     campaign.budget_usdc = budget_usdc;
     campaign.spent_usdc = 0;

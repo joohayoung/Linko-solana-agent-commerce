@@ -1,56 +1,52 @@
 /**
- * 8. 데이터 모델 — 파일 기반 저장소
- * 해커톤 MVP라 DB 없이 JSON 파일로 시작합니다. 스키마는 data-model.md 참고.
- * 각 컬렉션(campaigns/promoters/participations/orders)은 data/*.json 배열로 저장됩니다.
+ * 8. 데이터 모델 — Firestore 저장소
+ * Cloud Run은 무상태(stateless) 컨테이너라 로컬 JSON 파일로는 인스턴스 재시작/스케일아웃 시
+ * 데이터가 유실된다. 그래서 Firestore로 옮기되, 호출부 영향을 최소화하기 위해 기존 함수
+ * 시그니처(readAll/writeAll/findById/findWhere/insert/update)는 그대로 유지한다 — 다만
+ * Firestore 자체가 네트워크 호출이라 전부 async가 됐으므로, 호출부는 await을 붙여야 한다.
+ * 컬렉션: advertisers/campaigns/orders/participations/promoters/budgetRebalances.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { Firestore } from "@google-cloud/firestore";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const DATA_DIR = path.resolve(__dirname, "..", "data");
+const firestore = new Firestore({
+  projectId: process.env.GOOGLE_CLOUD_PROJECT,
+  ignoreUndefinedProperties: true,
+});
 
-function filePathFor(collection) {
-  return path.join(DATA_DIR, `${collection}.json`);
+export async function readAll(collection) {
+  const snapshot = await firestore.collection(collection).get();
+  return snapshot.docs.map((doc) => doc.data());
 }
 
-function ensureCollection(collection) {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  const fp = filePathFor(collection);
-  if (!fs.existsSync(fp)) fs.writeFileSync(fp, "[]");
-  return fp;
+export async function writeAll(collection, records) {
+  const colRef = firestore.collection(collection);
+  const existingDocs = await colRef.listDocuments();
+  const batch = firestore.batch();
+  for (const docRef of existingDocs) batch.delete(docRef);
+  for (const record of records) batch.set(colRef.doc(String(record.id)), record);
+  await batch.commit();
 }
 
-export function readAll(collection) {
-  const fp = ensureCollection(collection);
-  return JSON.parse(fs.readFileSync(fp, "utf-8"));
+export async function findById(collection, id) {
+  const doc = await firestore.collection(collection).doc(String(id)).get();
+  return doc.exists ? doc.data() : null;
 }
 
-export function writeAll(collection, records) {
-  const fp = ensureCollection(collection);
-  fs.writeFileSync(fp, JSON.stringify(records, null, 2));
+export async function findWhere(collection, predicate) {
+  const all = await readAll(collection);
+  return all.filter(predicate);
 }
 
-export function findById(collection, id) {
-  return readAll(collection).find((r) => r.id === id) ?? null;
-}
-
-export function findWhere(collection, predicate) {
-  return readAll(collection).filter(predicate);
-}
-
-export function insert(collection, record) {
-  const records = readAll(collection);
-  records.push(record);
-  writeAll(collection, records);
+export async function insert(collection, record) {
+  await firestore.collection(collection).doc(String(record.id)).set(record);
   return record;
 }
 
-export function update(collection, id, patch) {
-  const records = readAll(collection);
-  const idx = records.findIndex((r) => r.id === id);
-  if (idx === -1) throw new Error(`${collection}에서 id=${id} 를 찾을 수 없습니다.`);
-  records[idx] = { ...records[idx], ...patch };
-  writeAll(collection, records);
-  return records[idx];
+export async function update(collection, id, patch) {
+  const docRef = firestore.collection(collection).doc(String(id));
+  const snap = await docRef.get();
+  if (!snap.exists) throw new Error(`${collection}에서 id=${id} 를 찾을 수 없습니다.`);
+  const updated = { ...snap.data(), ...patch };
+  await docRef.set(updated);
+  return updated;
 }
