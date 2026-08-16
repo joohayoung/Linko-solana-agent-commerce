@@ -514,10 +514,11 @@
       }
     ],
     "confirmDelayDays": 10,
-    "budgetKrw": 10000000,
+    "budgetKrw": 10970200,
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "lge-mall",
-    "status": "active"
+    "status": "active",
+    "budgetUsdc": 693
   },
   {
     "id": "c-3c2f763527e546f1",
@@ -546,9 +547,86 @@
       }
     ],
     "confirmDelayDays": 4,
-    "budgetKrw": 1000000,
+    "budgetKrw": 1391020,
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "sundayglow-mall",
+    "status": "active",
+    "budgetUsdc": 279.3
+  },
+  {
+    "id": "c-7419b1d05f1d44a0",
+    "advertiser": "테스트광고주",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "advertiserWallet": "146zFToSbU3dwi97Rh1yQB2W955Hg19A7zZJ3rXB3qJy",
+    "product": "테스트 캠페인 A",
+    "description": "",
+    "productUrl": "",
+    "guideline": "",
+    "tags": [],
+    "price": 10000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 5000,
+    "budgetUsdc": 3.5714285714285716,
+    "onchain": {
+      "campaignPda": "CFi7vKqivVBcdwLRUXdVbjfSuxDjSfW7J2byQBN88k6G",
+      "vaultPda": "D8eqvWQAGzB3xkhAFFKTiwc4Pq7VmUWZXTF5UTMAEKot",
+      "depositTx": "3mnVvpBqeppy8s9pMoauv6PH94iBDpez2j1PGPimKPZKhg4QJxFS3xoQKD5DisyTicKPq6faQ28YfS4cC7nACHsH",
+      "platformFeeUsdc": 0.1785714285714286,
+      "solscanUrl": "https://solscan.io/tx/3mnVvpBqeppy8s9pMoauv6PH94iBDpez2j1PGPimKPZKhg4QJxFS3xoQKD5DisyTicKPq6faQ28YfS4cC7nACHsH?cluster=devnet"
+    },
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "nongshim-mall",
+    "status": "active"
+  },
+  {
+    "id": "c-773640cceee14dbd",
+    "advertiser": "테스트광고주",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "advertiserWallet": "146zFToSbU3dwi97Rh1yQB2W955Hg19A7zZJ3rXB3qJy",
+    "product": "테스트 캠페인 B",
+    "description": "",
+    "productUrl": "",
+    "guideline": "",
+    "tags": [],
+    "price": 10000,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 7130,
+    "budgetUsdc": 5.09,
+    "onchain": {
+      "campaignPda": "8mcxijEVReZzoua4BPWWT8qtCjXaGggQj96DyRhRsq4M",
+      "vaultPda": "GUrkH384t85aZTCbU7MwjyfeZjgwRqX3JGdLmGb2ooWx",
+      "depositTx": "3LUtJpv1RNi2q31nMvMEZwbD8NPYJDPFivovBzLzToYDXnvqFc49hXach6bU86h3uwcKxSdbt9Datud56rdXumos",
+      "platformFeeUsdc": 0.10714285714285715,
+      "solscanUrl": "https://solscan.io/tx/3LUtJpv1RNi2q31nMvMEZwbD8NPYJDPFivovBzLzToYDXnvqFc49hXach6bU86h3uwcKxSdbt9Datud56rdXumos?cluster=devnet"
+    },
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "lge-mall",
     "status": "active"
   },
   {
@@ -589,6 +667,90 @@
     },
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "nongshim-mall",
+    "status": "active"
+  },
+  {
+    "id": "c-503213eb81294c12",
+    "advertiser": "테스트 캠페인 1",
+    "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66",
+    "advertiserWallet": "F8GGhyHcgpxrRWttKriaNyoWMpanwv57m4VCFAZQo7Vp",
+    "product": "테스트 캠페인 1",
+    "description": "테스트 캠페인 1",
+    "productUrl": "https://sundayglow-mall.com/products/sunscreen-spf50",
+    "guideline": "테스트 캠페인 1",
+    "tags": [
+      "테스트 캠페인"
+    ],
+    "price": 500,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 5,
+    "budgetKrw": 5000,
+    "budgetUsdc": 3.5714285714285716,
+    "onchain": {
+      "campaignPda": "gTE8kXxrPjiBVFBSjHKRMc75NmVNRW1j7TQBZgNz5SS",
+      "vaultPda": "ARpmayzoKnmkp5sMhaUcrE5PioiZnKjYa8S4XsKEEymJ",
+      "depositTx": "51m56wTKvCj2YXMhtXffVeHJhUW3a5R4ueEKSfQs6wEhPj9EVsCm6kN2SQs4FbeT2MtES5dZ5XcKvGmobJnEGUjm",
+      "extraTxs": [],
+      "platformFeeUsdc": 0.1785714285714286,
+      "solscanUrl": "https://solscan.io/tx/51m56wTKvCj2YXMhtXffVeHJhUW3a5R4ueEKSfQs6wEhPj9EVsCm6kN2SQs4FbeT2MtES5dZ5XcKvGmobJnEGUjm?cluster=devnet",
+      "signedByAdvertiser": true
+    },
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "nongshim-mall",
+    "status": "active"
+  },
+  {
+    "id": "c-d868b36aaf204d75",
+    "advertiser": "테스트 캠페인 2",
+    "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66",
+    "advertiserWallet": "F8GGhyHcgpxrRWttKriaNyoWMpanwv57m4VCFAZQo7Vp",
+    "product": "테스트 캠페인2",
+    "description": "테스트 캠페인 2",
+    "productUrl": "https://sundayglow-mall.com/products/sunscreen-spf50",
+    "guideline": "테스트 캠페인2",
+    "tags": [
+      "테스트 캠페인"
+    ],
+    "price": 300,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 3,
+    "budgetKrw": 6498,
+    "budgetUsdc": 4.64,
+    "onchain": {
+      "campaignPda": "42FFHVd9fui7bVXrLBuETyTFYu35jk7pGRuGphJ98wzW",
+      "vaultPda": "4tyKK8EcLJpwCfkG2vC98yDK54atx9YrUZqpDwHWdm7d",
+      "depositTx": "MJ5xtmKDZ9kK9AusipskJi7v1HZwYP15d5m47SUosUGLn94tTZD6WK3tpAYNbkq1dsDri4sJQtWAitEUHdYobYQ",
+      "extraTxs": [],
+      "platformFeeUsdc": 0.1785714285714286,
+      "solscanUrl": "https://solscan.io/tx/MJ5xtmKDZ9kK9AusipskJi7v1HZwYP15d5m47SUosUGLn94tTZD6WK3tpAYNbkq1dsDri4sJQtWAitEUHdYobYQ?cluster=devnet",
+      "signedByAdvertiser": true
+    },
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "lge-mall",
     "status": "active"
   }
 ]

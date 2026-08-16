@@ -38,16 +38,12 @@ export const CAMPAIGN_SEED = Buffer.from("campaign");
 export const VAULT_SEED = Buffer.from("vault");
 export const BUDGET_SEED = Buffer.from("budget");
 
-/**
- * 광고주 계정(advertiserId)마다 온체인에서 완전히 독립된 Campaign/Budget PDA를 가지려면,
- * 서명하는 지갑 자체가 광고주별로 달라야 한다(Anchor가 PDA를 signer.key()로 시드하기 때문).
- * 그래서 advertiserId 하나당 지갑 파일 하나(wallets/advertiser-<id>.json)를 두고,
- * 처음 쓰일 때 자동으로 생성한다. advertiserId가 없으면(예: 과거 익명 캠페인) 기존 공유
- * 지갑(WALLET_IDS.advertiser)으로 폴백한다.
- */
-export function advertiserWalletIdFor(advertiserId) {
-  return advertiserId ? `advertiser-${advertiserId}` : WALLET_IDS.advertiser;
-}
+// [LEGACY] 패스키 이전에는 advertiserId마다 서버가 커스터디얼 지갑(wallets/advertiser-<id>.json)을
+// 자동 생성해서 PDA를 그 지갑 기준으로 도출했다. 지금은 budgetCampaign()이 광고주의 실제 패스키
+// 지갑 주소(advertiserWallet)를 직접 받아서 쓰므로 더 이상 필요 없음 — 코드는 남겨두되 비활성화.
+// export function advertiserWalletIdFor(advertiserId) {
+//   return advertiserId ? `advertiser-${advertiserId}` : WALLET_IDS.advertiser;
+// }
 
 /**
  * loadWallet과 달리 파일이 없으면 새 Keypair를 만들어 저장하고 반환한다(01-generate-wallets.mjs와
@@ -355,117 +351,120 @@ export async function settleFromEscrow({ advertiserPubkey, creatorPubkey, amount
   };
 }
 
-/**
- * 3. create_budget: 광고주당 1개뿐인 예비 예산 풀(Budget PDA) 최초 생성 + 입금.
- * create_campaign의 입금 로직과 동일하되 campaign_id가 없음 — 광고주가 직접 서명하는 "충전" 액션.
- * Budget PDA 자체는 광고주당 1개만 생성 가능하지만(Anchor init 제약), 그 이후 추가 충전은
- * topUpBudget()으로 몇 번이든 계속할 수 있다.
- */
-export async function createAdvertiserBudget({ advertiserWalletId = WALLET_IDS.advertiser, amountUsdc }) {
-  const advertiser = loadOrCreateWallet(advertiserWalletId);
-  const platformAuthority = loadWallet(WALLET_IDS.platform);
-  const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
-  const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiser.publicKey);
-
-  const disc = await getDiscriminator("create_budget");
-
-  const rawAmount = BigInt(Math.round(amountUsdc * 1e6)); // USDC 6 decimals
-  const amountBuf = Buffer.alloc(8);
-  amountBuf.writeBigUInt64LE(rawAmount, 0);
-
-  const platformAuthorityBuf = platformAuthority.publicKey.toBuffer(); // 32바이트 Pubkey
-
-  const ixData = Buffer.concat([disc, amountBuf, platformAuthorityBuf]);
-
-  const keys = [
-    { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
-    { pubkey: budgetPda, isSigner: false, isWritable: true },
-    { pubkey: vaultPda, isSigner: false, isWritable: true },
-    { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
-    { pubkey: advertiserAta, isSigner: false, isWritable: true },
-    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-    { pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false },
-  ];
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys,
-    data: ixData,
-  });
-
-  const tx = new Transaction().add(ix);
-  // 가스비는 플랫폼이 대납(기존 create_campaign과 동일한 gasless 정책) — 광고주는 USDC 이체 승인 서명만.
-  tx.feePayer = platformAuthority.publicKey;
-  const signature = await sendAndConfirmTransaction(connection, tx, [advertiser, platformAuthority], {
-    commitment: "confirmed",
-  });
-
-  return {
-    signature,
-    budgetPda: budgetPda.toBase58(),
-    vaultPda: vaultPda.toBase58(),
-    solscanUrl: solscanTxUrl(signature),
-  };
-}
-
-/**
- * 3b. top_up_budget: 이미 생성된 Budget PDA/Vault에 광고주가 추가로 입금.
- * create_budget과 계정 구성은 거의 같지만 init이 없어서(이미 존재하는 계정 재사용) 몇 번이든 호출 가능.
- */
-export async function topUpBudget({ advertiserWalletId = WALLET_IDS.advertiser, amountUsdc }) {
-  const advertiser = loadOrCreateWallet(advertiserWalletId);
-  const platformAuthority = loadWallet(WALLET_IDS.platform);
-  const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
-  const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiser.publicKey);
-
-  const disc = await getDiscriminator("top_up_budget");
-
-  const rawAmount = BigInt(Math.round(amountUsdc * 1e6));
-  const amountBuf = Buffer.alloc(8);
-  amountBuf.writeBigUInt64LE(rawAmount, 0);
-
-  const ixData = Buffer.concat([disc, amountBuf]);
-
-  const keys = [
-    { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
-    { pubkey: budgetPda, isSigner: false, isWritable: true },
-    { pubkey: vaultPda, isSigner: false, isWritable: true },
-    { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
-    { pubkey: advertiserAta, isSigner: false, isWritable: true },
-    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-  ];
-
-  const ix = new TransactionInstruction({
-    programId: ESCROW_PROGRAM_ID,
-    keys,
-    data: ixData,
-  });
-
-  const tx = new Transaction().add(ix);
-  tx.feePayer = platformAuthority.publicKey;
-  const signature = await sendAndConfirmTransaction(connection, tx, [advertiser, platformAuthority], {
-    commitment: "confirmed",
-  });
-
-  return {
-    signature,
-    budgetPda: budgetPda.toBase58(),
-    vaultPda: vaultPda.toBase58(),
-    solscanUrl: solscanTxUrl(signature),
-  };
-}
+// [LEGACY] create_budget/top_up_budget을 서버가 커스터디얼 지갑으로 직접 서명해 실행하던 구버전.
+// 지금은 buildAdvertiserBudgetInstructions()로 인스트럭션만 조립해서 광고주 실제 패스키 지갑이
+// 브라우저에서 직접 서명하므로(POST /api/advertiser/:id/budget/prepare + /finalize) 더 이상
+// 호출되지 않음 — 코드는 참고용으로 남겨두되 비활성화.
+//
+// export async function createAdvertiserBudget({ advertiserWalletId = WALLET_IDS.advertiser, amountUsdc }) {
+//   const advertiser = loadOrCreateWallet(advertiserWalletId);
+//   const platformAuthority = loadWallet(WALLET_IDS.platform);
+//   const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
+//   const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiser.publicKey);
+//
+//   const disc = await getDiscriminator("create_budget");
+//
+//   const rawAmount = BigInt(Math.round(amountUsdc * 1e6)); // USDC 6 decimals
+//   const amountBuf = Buffer.alloc(8);
+//   amountBuf.writeBigUInt64LE(rawAmount, 0);
+//
+//   const platformAuthorityBuf = platformAuthority.publicKey.toBuffer(); // 32바이트 Pubkey
+//
+//   const ixData = Buffer.concat([disc, amountBuf, platformAuthorityBuf]);
+//
+//   const keys = [
+//     { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
+//     { pubkey: budgetPda, isSigner: false, isWritable: true },
+//     { pubkey: vaultPda, isSigner: false, isWritable: true },
+//     { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+//     { pubkey: advertiserAta, isSigner: false, isWritable: true },
+//     { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+//     { pubkey: new PublicKey("11111111111111111111111111111111"), isSigner: false, isWritable: false },
+//   ];
+//
+//   const ix = new TransactionInstruction({
+//     programId: ESCROW_PROGRAM_ID,
+//     keys,
+//     data: ixData,
+//   });
+//
+//   const tx = new Transaction().add(ix);
+//   // 가스비는 플랫폼이 대납(기존 create_campaign과 동일한 gasless 정책) — 광고주는 USDC 이체 승인 서명만.
+//   tx.feePayer = platformAuthority.publicKey;
+//   const signature = await sendAndConfirmTransaction(connection, tx, [advertiser, platformAuthority], {
+//     commitment: "confirmed",
+//   });
+//
+//   return {
+//     signature,
+//     budgetPda: budgetPda.toBase58(),
+//     vaultPda: vaultPda.toBase58(),
+//     solscanUrl: solscanTxUrl(signature),
+//   };
+// }
+//
+// export async function topUpBudget({ advertiserWalletId = WALLET_IDS.advertiser, amountUsdc }) {
+//   const advertiser = loadOrCreateWallet(advertiserWalletId);
+//   const platformAuthority = loadWallet(WALLET_IDS.platform);
+//   const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
+//   const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiser.publicKey);
+//
+//   const disc = await getDiscriminator("top_up_budget");
+//
+//   const rawAmount = BigInt(Math.round(amountUsdc * 1e6));
+//   const amountBuf = Buffer.alloc(8);
+//   amountBuf.writeBigUInt64LE(rawAmount, 0);
+//
+//   const ixData = Buffer.concat([disc, amountBuf]);
+//
+//   const keys = [
+//     { pubkey: advertiser.publicKey, isSigner: true, isWritable: true },
+//     { pubkey: budgetPda, isSigner: false, isWritable: true },
+//     { pubkey: vaultPda, isSigner: false, isWritable: true },
+//     { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+//     { pubkey: advertiserAta, isSigner: false, isWritable: true },
+//     { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+//   ];
+//
+//   const ix = new TransactionInstruction({
+//     programId: ESCROW_PROGRAM_ID,
+//     keys,
+//     data: ixData,
+//   });
+//
+//   const tx = new Transaction().add(ix);
+//   tx.feePayer = platformAuthority.publicKey;
+//   const signature = await sendAndConfirmTransaction(connection, tx, [advertiser, platformAuthority], {
+//     commitment: "confirmed",
+//   });
+//
+//   return {
+//     signature,
+//     budgetPda: budgetPda.toBase58(),
+//     vaultPda: vaultPda.toBase58(),
+//     solscanUrl: solscanTxUrl(signature),
+//   };
+// }
 
 /**
- * 현재 Budget PDA 상태 조회 — UI에서 잔액 표시용. Budget PDA가 아직 없으면 exists:false.
+ * 현재 Budget PDA 상태 조회 — UI/A2A 리밸런싱 사전조회용. Budget PDA가 아직 없으면 exists:false.
+ * advertiserWallet(광고주의 실제 패스키 지갑 주소, base58)을 반드시 받아서 그 지갑 기준으로
+ * PDA를 도출한다 — Budget PDA는 create_budget 때 광고주 실지갑으로 서명해 만들어지므로,
+ * 조회도 같은 지갑 기준이어야 한다.
  */
-export async function getAdvertiserBudgetInfo({ advertiserWalletId = WALLET_IDS.advertiser } = {}) {
-  // 조회만 할 땐 지갑을 새로 만들 필요가 없음 — 지갑 파일이 아직 없다는 건 온체인 Budget PDA도
-  // 당연히 없다는 뜻이라, 파일 존재 여부만으로 exists:false를 바로 판단할 수 있음.
-  if (!fs.existsSync(`${WALLETS_DIR}/${advertiserWalletId}.json`)) {
-    return { exists: false, budgetPda: null, vaultPda: null, vaultBalanceUsdc: 0 };
+export async function getAdvertiserBudgetInfo({ advertiserWallet } = {}) {
+  if (!advertiserWallet) {
+    // [LEGACY] 커스터디얼 데모 지갑(WALLET_IDS.advertiser) 기준 폴백 — 패스키 실지갑 주소가
+    // 없던 시절 코드. 광고주 계정은 이제 항상 실지갑 주소를 갖고 있어야 하므로 비활성화.
+    // if (!fs.existsSync(`${WALLETS_DIR}/${WALLET_IDS.advertiser}.json`)) {
+    //   return { exists: false, budgetPda: null, vaultPda: null, vaultBalanceUsdc: 0 };
+    // }
+    // const advertiser = loadWallet(WALLET_IDS.advertiser);
+    // const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
+    throw new Error("advertiserWallet(광고주 실지갑 주소)이 필요합니다.");
   }
-  const advertiser = loadWallet(advertiserWalletId);
-  const { budgetPda, vaultPda } = getBudgetPda(advertiser.publicKey);
+  const advertiserPubkey = new PublicKey(advertiserWallet);
+  const { budgetPda, vaultPda } = getBudgetPda(advertiserPubkey);
 
   const info = await connection.getAccountInfo(budgetPda);
   if (!info) {
@@ -592,14 +591,22 @@ export async function buildAdvertiserBudgetInstructions({ advertiserPubkey, amou
 /**
  * 4. budget_campaign: Budget PDA의 Vault -> 기존 캠페인 Vault로 USDC 이체.
  * 두 Vault 모두 프로그램 소유 PDA라 플랫폼 지갑(platform_authority) 서명만으로 실행됨 — 광고주 지갑 불필요.
- * advertiserId로 그 광고주 전용 지갑을 찾아 Budget/Campaign PDA를 도출한다(광고주별 독립 보장) —
- * 이 함수 자체는 서명하지 않고 pubkey만 필요하므로, 지갑이 아직 없으면 자동 생성한다.
+ * advertiserWallet(광고주의 실제 패스키 지갑 주소, base58)로 Budget/Campaign PDA를 도출한다 —
+ * Budget PDA는 create_budget 때, Campaign PDA는 create_campaign 때 각각 광고주 실지갑으로
+ * 서명해 만들어지므로, A2A 리밸런싱도 같은 지갑 기준으로 PDA를 찾아야 실제 자금이 이동한다.
+ * platform_authority만 서명하면 되므로 A2A 에이전트는 매번 광고주 패스키 승인 없이 자동 실행된다.
  */
-export async function budgetCampaign({ campaignId, amountUsdc, advertiserId }) {
+export async function budgetCampaign({ campaignId, amountUsdc, advertiserWallet }) {
   const platformAuthority = loadWallet(WALLET_IDS.platform);
-  const advertiser = loadOrCreateWallet(advertiserWalletIdFor(advertiserId));
-  const { budgetPda, vaultPda: budgetVaultPda } = getBudgetPda(advertiser.publicKey);
-  const { campaignPda, vaultPda: campaignVaultPda } = getCampaignPda(advertiser.publicKey, campaignId);
+  if (!advertiserWallet) {
+    // [LEGACY] advertiserId 기준으로 서버가 커스터디얼 지갑을 자동 생성/조회하던 폴백.
+    // const advertiser = loadOrCreateWallet(advertiserWalletIdFor(advertiserId));
+    // advertiserWallet = advertiser.publicKey.toBase58();
+    throw new Error("advertiserWallet(광고주 실지갑 주소)이 필요합니다.");
+  }
+  const advertiserPubkey = new PublicKey(advertiserWallet);
+  const { budgetPda, vaultPda: budgetVaultPda } = getBudgetPda(advertiserPubkey);
+  const { campaignPda, vaultPda: campaignVaultPda } = getCampaignPda(advertiserPubkey, campaignId);
 
   const budgetInfo = await connection.getAccountInfo(budgetPda);
   if (!budgetInfo) {

@@ -98,7 +98,7 @@ function getCampaignBudgetState(campaignId) {
  * Budget PDA -> 캠페인 Vault 실제 온체인 이체. 성공했을 때만 DB에 미러링한다
  * (§9 가드레일: 온체인 성공 후에만 반영 — 실패한 트랜잭션은 campaigns.json에 안 남김).
  */
-async function executeOnChainTopup(campaignId, amountUsdc) {
+async function executeOnChainTopup(campaignId, amountUsdc, advertiserWallet) {
   const campaign = findById("campaigns", campaignId);
   const amountKrw = Math.round(amountUsdc * KRW_PER_USDC);
 
@@ -114,7 +114,7 @@ async function executeOnChainTopup(campaignId, amountUsdc) {
     throw new Error(`캠페인 ${campaignId}은(는) 온체인 에스크로가 없어 배분할 수 없습니다.`);
   }
 
-  const { signature, solscanUrl } = await budgetCampaign({ campaignId, amountUsdc });
+  const { signature, solscanUrl } = await budgetCampaign({ campaignId, amountUsdc, advertiserWallet });
   update("campaigns", campaignId, {
     budgetUsdc: Math.round(((campaign.budgetUsdc || 0) + amountUsdc) * 100) / 100,
     budgetKrw: (campaign.budgetKrw || 0) + amountKrw,
@@ -122,7 +122,7 @@ async function executeOnChainTopup(campaignId, amountUsdc) {
   return { amountKrw, txSignature: signature, solscanUrl };
 }
 
-function makeExecuteToolCall({ campaignsById, poolUsdc, state }) {
+function makeExecuteToolCall({ campaignsById, poolUsdc, state, advertiserWallet }) {
   return async function executeToolCall(name, args) {
     switch (name) {
       case "get_campaign_budget_state":
@@ -150,7 +150,7 @@ function makeExecuteToolCall({ campaignsById, poolUsdc, state }) {
 
         let onchain;
         try {
-          onchain = await executeOnChainTopup(campaignId, amountUsdc);
+          onchain = await executeOnChainTopup(campaignId, amountUsdc, advertiserWallet);
         } catch (e) {
           return { success: false, error: `온체인 배분 실패: ${e.message}` };
         }
@@ -184,7 +184,7 @@ export async function runAllocatorAgent({ a2aMessage, poolUsdc }) {
   const campaigns = data.campaigns;
   const campaignsById = Object.fromEntries(campaigns.map((c) => [c.campaignId, c]));
   const state = { cumulativeUsdc: 0, allocations: [] };
-  const executeToolCall = makeExecuteToolCall({ campaignsById, poolUsdc, state });
+  const executeToolCall = makeExecuteToolCall({ campaignsById, poolUsdc, state, advertiserWallet: data.advertiserWallet });
 
   const initialMessage = JSON.stringify({
     advertiserId: data.advertiserId,

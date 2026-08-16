@@ -1,5 +1,6 @@
 let krwPerUsdc = 1400;
 let currentAdvertiserId = null;
+let currentAdvertiserWallet = null;
 
 api("/api/config")
   .then((cfg) => {
@@ -7,11 +8,13 @@ api("/api/config")
   })
   .catch(() => {});
 
-async function loadBudgetStatus(advertiserId) {
+async function loadBudgetStatus(advertiserId, walletAddress) {
   currentAdvertiserId = advertiserId;
+  currentAdvertiserWallet = walletAddress || null;
   const panel = document.getElementById("budgetStatusPanel");
   try {
-    const info = await api(`/api/advertiser/${advertiserId}/budget`);
+    const query = currentAdvertiserWallet ? `?wallet=${encodeURIComponent(currentAdvertiserWallet)}` : "";
+    const info = await api(`/api/advertiser/${advertiserId}/budget${query}`);
     if (info.exists) {
       panel.innerHTML = `
         ${info.simulated ? `<p style="color:var(--danger); font-size:12.5px; font-weight:700; margin:0 0 10px;">⚠ 시뮬레이션 모드 — 실제 온체인 Budget Vault가 아니라 가정한 값이에요.</p>` : ""}
@@ -114,7 +117,7 @@ document.getElementById("runBtn").addEventListener("click", async () => {
     renderAllocations(data.allocator);
     document.getElementById("resultPanel").style.display = "block";
     toast("예산 배분이 끝났어요!");
-    loadBudgetStatus(currentAdvertiserId);
+    loadBudgetStatus(currentAdvertiserId, currentAdvertiserWallet);
   } catch (e) {
     toast(e.message);
   } finally {
@@ -123,4 +126,4 @@ document.getElementById("runBtn").addEventListener("click", async () => {
   }
 });
 
-linkoRequireAdvertiserSession((id) => loadBudgetStatus(id));
+linkoRequireAdvertiserSession((id, advertiser) => loadBudgetStatus(id, advertiser?.walletAddress));

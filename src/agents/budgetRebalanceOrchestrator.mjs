@@ -9,7 +9,7 @@
  * 주기적으로(cron 등) 자동 실행될 것을 데모에서 수동으로 트리거하는 것뿐이다.
  */
 import { v4 as uuidv4 } from "uuid";
-import { insert } from "../db.mjs";
+import { insert, findById } from "../db.mjs";
 import { getAdvertiserBudgetInfo } from "../escrow.mjs";
 import { runAnalystAgent, analystAgentCard } from "./analystAgent.mjs";
 import { runAllocatorAgent, allocatorAgentCard } from "./allocatorAgent.mjs";
@@ -44,7 +44,7 @@ function attachSuggestedWeights(campaigns) {
   });
 }
 
-function buildA2AMessage({ advertiserId, poolUsdc, campaigns }) {
+function buildA2AMessage({ advertiserId, advertiserWallet, poolUsdc, campaigns }) {
   return {
     taskId: `a2a-${uuidv4().slice(0, 8)}`,
     from: analystAgentCard.name,
@@ -52,7 +52,7 @@ function buildA2AMessage({ advertiserId, poolUsdc, campaigns }) {
     createdAt: new Date().toISOString(),
     message: {
       role: "agent",
-      parts: [{ type: "data", data: { advertiserId, poolUsdc, campaigns } }],
+      parts: [{ type: "data", data: { advertiserId, advertiserWallet, poolUsdc, campaigns } }],
     },
   };
 }
@@ -63,12 +63,20 @@ function buildA2AMessage({ advertiserId, poolUsdc, campaigns }) {
 export async function runBudgetRebalance({ advertiserId }) {
   const startedAt = new Date().toISOString();
 
+  // Budget/Campaign PDA는 광고주의 실제 패스키 지갑 주소로 도출되므로(create_budget/create_campaign이
+  // 그 지갑 서명으로 만들어짐), 리밸런싱도 같은 지갑 기준으로 조회·실행해야 진짜 자금을 움직인다.
+  const advertiser = SIMULATE ? null : findById("advertisers", advertiserId);
+  const advertiserWallet = advertiser?.walletAddress || null;
+  if (!SIMULATE && !advertiserWallet) {
+    throw new Error("이 광고주 계정에 연결된 지갑 주소를 찾을 수 없습니다. 패스키로 다시 로그인해주세요.");
+  }
+
   let poolUsdc;
   if (SIMULATE) {
     poolUsdc = SIMULATE_POOL_USDC;
     console.log(`[budgetRebalanceOrchestrator] ⚠ BUDGET_AGENT_SIMULATE=true — Budget Vault 실조회 없이 ${poolUsdc} USDC로 가정하고 진행합니다.`);
   } else {
-    const budgetInfo = await getAdvertiserBudgetInfo();
+    const budgetInfo = await getAdvertiserBudgetInfo({ advertiserWallet });
     if (!budgetInfo.exists) {
       throw new Error("Budget PDA가 아직 생성되지 않았습니다. 먼저 예비 예산을 충전해주세요.");
     }
@@ -80,7 +88,7 @@ export async function runBudgetRebalance({ advertiserId }) {
 
   const analystResult = await runAnalystAgent({ advertiserId });
   const campaignsWithWeight = attachSuggestedWeights(analystResult.output.campaigns || []);
-  const a2aMessage = buildA2AMessage({ advertiserId, poolUsdc, campaigns: campaignsWithWeight });
+  const a2aMessage = buildA2AMessage({ advertiserId, advertiserWallet, poolUsdc, campaigns: campaignsWithWeight });
 
   const allocatorResult = await runAllocatorAgent({ a2aMessage, poolUsdc });
 
