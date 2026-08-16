@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>예산 재분배 에이전트 — 광고주 — Linko</title>
+<link rel="stylesheet" href="/css/style.css" />
+<style>
+  .agent-log { display:flex; flex-direction:column; gap:10px; max-height:480px; overflow-y:auto; }
+  .log-entry { border:1px solid var(--border); border-radius:10px; padding:12px 14px; background:var(--bg); font-size:13px; opacity:0; transform:translateY(4px); animation:logIn .25s ease forwards; }
+  @keyframes logIn { to { opacity:1; transform:none; } }
+  .log-entry .log-label { font-weight:800; font-size:11.5px; color:var(--primary-dark); text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px; }
+  .log-entry pre { margin:6px 0 0; white-space:pre-wrap; word-break:break-all; font-family:"SFMono-Regular",Consolas,Menlo,monospace; font-size:11.5px; color:var(--muted); }
+  .alloc-card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; display:flex; justify-content:space-between; gap:12px; align-items:center; }
+  .alloc-card.funded { border-color:var(--primary); border-width:1.5px; }
+  .alloc-card.excluded { opacity:0.6; }
+  .alloc-card .amt { font-weight:800; font-size:16px; }
+  .alloc-card .reason { font-size:12px; color:var(--muted); margin-top:4px; max-width:520px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="mark">L</span> Linko</div>
+    <nav class="nav-links">
+      <a href="/advertiser-register.html">캠페인 등록</a>
+      <a href="/advertiser-budget-agent.html" class="active">예산 에이전트</a>
+    </nav>
+    <nav class="nav-links role-links">
+      <a href="/advertiser-dashboard.html" class="active">광고주</a>
+      <a href="/promoter-dashboard.html">크리에이터</a>
+    </nav>
+    <span id="linkoRoleWalletBadge" style="font-size:12px; margin-left:10px; white-space:nowrap;"></span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap" style="max-width:760px;">
+    <div class="breadcrumb"><a href="/advertiser-dashboard.html">광고주 대시보드</a> / <span>예산 재분배 에이전트</span></div>
+
+    <div class="page-head">
+      <h1>예산 재분배 에이전트</h1>
+      <p>분석 에이전트가 캠페인 성과를 조사하고, 그 결과를 A2A 메시지로 예산분배 에이전트에게 넘기면, 예산분배 에이전트가 추가 예산 풀을 성과 비례로 자율 배분해요.</p>
+    </div>
+
+    <div class="panel" id="budgetStatusPanel">불러오는 중...</div>
+
+    <div class="panel">
+      <p style="color:var(--muted); font-size:13.5px; margin-top:0;">
+        얼마를 배분할지는 입력하지 않아요 — Budget Vault에 있는 전체 잔액을 에이전트가 직접 조회해서,
+        그중 얼마를 쓸지(또는 전혀 안 쓸지)까지 스스로 판단해요. 이 버튼은 실제로는 주기적으로 자동
+        실행될 것을 데모를 위해 수동으로 트리거하는 것뿐이에요.
+      </p>
+      <button class="pill-btn" id="runBtn">지금 실행</button>
+    </div>
+
+    <div class="panel" id="logPanel" style="display:none;">
+      <h2>실행 로그</h2>
+      <div class="agent-log" id="agentLog"></div>
+    </div>
+
+    <div class="panel" id="resultPanel" style="display:none;">
+      <h2>배분 결과</h2>
+      <p id="resultSummary" style="color:var(--muted); font-size:13.5px;"></p>
+      <div class="agent-log" id="allocList"></div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/wallet-widget.js"></script>
+<script src="/js/wallet-session.js"></script>
+<script src="/js/advertiser-budget-agent.js"></script>
+</body>
+</html>
