@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>예비 예산(Budget) 충전 — 광고주 — Linko</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo"><span class="mark">L</span> Linko</div>
+    <nav class="nav-links">
+      <a href="/advertiser-register.html">캠페인 등록</a>
+      <a href="/advertiser-budget-agent.html">예산 에이전트</a>
+    </nav>
+    <nav class="nav-links role-links">
+      <a href="/advertiser-dashboard.html" class="active">광고주</a>
+      <a href="/promoter-dashboard.html">크리에이터</a>
+    </nav>
+    <span id="linkoRoleWalletBadge" style="font-size:12px; margin-left:10px; white-space:nowrap;"></span>
+  </div>
+</header>
+
+<main class="page">
+  <div class="wrap" style="max-width:640px;">
+    <div class="breadcrumb"><a href="/advertiser-dashboard.html">광고주 대시보드</a> / <span>예비 예산 충전</span></div>
+
+    <div class="page-head">
+      <h1>예비 예산(Budget) 충전</h1>
+      <p>예산분배 에이전트가 성과 좋은 캠페인에 자율로 나눠줄 추가 예산 풀이에요. Budget PDA는 광고주당 1개뿐이지만, 그 안에 언제든 원하는 만큼 계속 충전할 수 있고 캠페인별 배분은 에이전트가 플랫폼 권한만으로 자율 실행해요.</p>
+    </div>
+
+    <div class="panel" id="statusPanel">불러오는 중...</div>
+
+    <div class="panel" id="formPanel" style="display:none;">
+      <div class="field">
+        <label id="amountLabel">충전할 금액 (원)</label>
+        <input id="amountKrw" type="number" placeholder="예: 300,000" min="0" step="1000" />
+        <div class="hint" id="usdcHint"></div>
+      </div>
+      <button class="pill-btn" id="submitBtn">충전하기</button>
+      <p class="fineprint" style="text-align:left; margin-top:10px;">이 트랜잭션은 광고주 지갑 서명이 필요해요. 충전된 금액을 캠페인별로 나누는 건 이후 예산 에이전트가 플랫폼 권한만으로 자율 실행해요.</p>
+    </div>
+  </div>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/wallet-widget.js"></script>
+<script src="/js/wallet-session.js"></script>
+<script src="/js/advertiser-budget-setup.js"></script>
+</body>
+</html>

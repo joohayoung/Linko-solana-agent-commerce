@@ -22,6 +22,7 @@ import { SHOP_IDS, createOrder as createShopOrder, getOrder as getShopOrder, set
 import { APP_PORT, KRW_PER_USDC } from "./src/config.mjs";
 import { chat as agentChat } from "./src/agent.mjs";
 import { handlePaymasterRpc } from "./src/paymaster.mjs";
+import { runBudgetRebalance } from "./src/agents/budgetRebalanceOrchestrator.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -759,6 +760,67 @@ async function handleApi(req, res, url, parts) {
     } catch (e) {
       console.error("[Agent] 에러:", e);
       return sendJson(res, 502, { error: `AI 에이전트 오류: ${e.message}` });
+    }
+  }
+
+  // GET /api/advertiser/:id/budget — Budget PDA(예비 예산 풀) 현재 상태 조회
+  // 광고주별로 Budget PDA가 나뉘지 않고 공유 데모 지갑(WALLET_IDS.advertiser) 기준 1개뿐이라
+  // :id는 URL 구조 일관성을 위해서만 받고 실제로는 안 씀(§2 확인: create_campaign도 동일한 이유로 :id 미사용).
+  if (method === "GET" && parts.length === 3 && parts[0] === "advertiser" && parts[2] === "budget") {
+    // budgetRebalanceOrchestrator.mjs와 동일한 임시 스위치 — devnet 배포 전 UI 흐름 테스트용
+    if (process.env.BUDGET_AGENT_SIMULATE === "true") {
+      return sendJson(res, 200, {
+        exists: true,
+        budgetPda: "SIMULATED",
+        vaultPda: "SIMULATED",
+        vaultBalanceUsdc: Number(process.env.BUDGET_AGENT_SIMULATE_POOL_USDC || 20),
+        simulated: true,
+      });
+    }
+    try {
+      const { getAdvertiserBudgetInfo } = await import("./src/escrow.mjs");
+      const info = await getAdvertiserBudgetInfo();
+      return sendJson(res, 200, info);
+    } catch (e) {
+      console.error("[GET budget] 에러:", e);
+      return sendJson(res, 502, { error: `Budget 조회 실패: ${e.message}` });
+    }
+  }
+
+  // POST /api/advertiser/:id/budget  { amountUsdc } — Budget PDA 충전(광고주 서명).
+  // Budget PDA가 아직 없으면 새로 생성하면서 입금하고, 이미 있으면 같은 Vault에 추가로 입금한다.
+  if (method === "POST" && parts.length === 3 && parts[0] === "advertiser" && parts[2] === "budget") {
+    const body = await readBody(req);
+    const amountUsdc = Number(body.amountUsdc);
+    if (!amountUsdc || amountUsdc <= 0) {
+      return sendJson(res, 400, { error: "amountUsdc(0보다 큰 값)가 필요합니다." });
+    }
+    try {
+      const { createAdvertiserBudget, topUpBudget, getAdvertiserBudgetInfo } = await import("./src/escrow.mjs");
+      const info = await getAdvertiserBudgetInfo();
+      const result = info.exists ? await topUpBudget({ amountUsdc }) : await createAdvertiserBudget({ amountUsdc });
+      return sendJson(res, 201, { ...result, created: !info.exists });
+    } catch (e) {
+      console.error("[POST budget] 에러:", e);
+      return sendJson(res, 502, { error: friendlyOnchainError(e) });
+    }
+  }
+
+  // POST /api/advertiser/:id/rebalance-budget
+  // 분석 에이전트 → 예산분배 에이전트를 순서대로 실행해, Budget Vault의 실제 잔액을 성과 기준으로
+  // 자율 배분한다. 풀 금액은 입력받지 않음 — 오케스트레이터가 Vault 잔액을 직접 조회해서 정함.
+  if (method === "POST" && parts.length === 3 && parts[0] === "advertiser" && parts[2] === "rebalance-budget") {
+    const advertiserId = parts[1];
+    if (!advertiserId) {
+      return sendJson(res, 400, { error: "advertiserId가 필요합니다." });
+    }
+
+    try {
+      const result = await runBudgetRebalance({ advertiserId });
+      return sendJson(res, 200, result);
+    } catch (e) {
+      console.error("[rebalance-budget] 에러:", e);
+      return sendJson(res, 502, { error: `예산 배분 에이전트 오류: ${e.message}` });
     }
   }
 

@@ -16,6 +16,7 @@ DB 없이 `data/*.json` 파일 기반 (파일 I/O는 `src/db.mjs`). 시간이 �
 | commissionTiers | {minSales, maxSales, rate}[] | 누적 확정판매 건수 구간별 리워드 요율(내부 필드명은 commissionTiers 유지). maxSales=null이면 상한 없음 |
 | confirmDelayDays | number | 구매확정까지 대기 기간(일) — 부정사용 방지 핵심 |
 | budgetKrw | number | 캠페인 예산(원). 사용자에게는 원화로만 노출되고, 실제 정산은 내부적으로 USDC로 환산되어 온체인 지급됨 |
+| budgetUsdc | number | budgetKrw의 USDC 환산값 — 예산분배 에이전트(모듈 13)가 판단·집행에 쓰는 유일한 예산 단위. budget_campaign 배분이 성공할 때마다 이 값과 budgetKrw가 함께 갱신됨 |
 | shopId | string | 연동된 가짜 쇼핑몰 시뮬레이터 식별자 (모듈 9). 등록 폼에는 노출되지 않고 서버가 자동 배정 |
 | status | string | active / ended |
 
@@ -58,6 +59,19 @@ DB 없이 `data/*.json` 파일 기반 (파일 I/O는 `src/db.mjs`). 시간이 �
 | commissionAmountUsdc | number \| null | 실제 지급된 USDC 커미션 금액 |
 | externalOrderId | string \| null | 광고주 스토어 측 주문번호. 구매확정 픽셀(`POST /api/pixel/conversion`)로 생성된 주문에만 존재 — 같은 주문이 중복 전송돼도 이 값으로 멱등 처리 |
 | source | string \| undefined | 주문이 어디서 생성됐는지 (`pixel` 등). 체크아웃 시뮬레이터로 생성된 기존 주문에는 없음 |
+
+## budgetRebalances (`data/budgetRebalances.json`)
+예산 재분배 에이전트(모듈 13, `src/agents/budgetRebalanceOrchestrator.mjs`) 실행 1회당 기록 1건. 분석 에이전트 ↔ 예산분배 에이전트의 A2A 협업 결과와 실행 로그를 감사용으로 남긴다.
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| id | string | 실행 식별자 |
+| advertiserId | string | 실행을 요청한 광고주 계정 id |
+| poolUsdc | number | 이번 실행에서 배분 대상이 된 풀 총액(USDC) |
+| startedAt / finishedAt | ISO string | 실행 시작/종료 시각 |
+| analyst | object | 분석 에이전트 결과 — `{ summary, usedFallback, transcript }` |
+| a2aMessage | object | 분석 → 예산분배 에이전트로 전달된 A2A 메시지(Task/Message 형태, `suggestedWeight` 포함) |
+| allocator | object | 예산분배 에이전트 결과 — `{ summary, usedFallback, transcript, allocations, unallocatedUsdc }`. `allocations[]`의 각 항목은 `campaignId, weight, amountUsdc, amountKrw, reason, txSignature?, solscanUrl?` |
 
 ## 요율 계산 규칙 (핵심 로직, 모듈 6)
 특정 주문이 **확정**되는 순간, 그 주문의 promoterId가 **같은 캠페인에서 지금까지 확정한 누적 판매 건수**(이 주문 포함)를 세고, `commissionTiers`에서 그 구간의 rate를 찾아 적용한다. 요율은 확정 시점에 결정되며 소급 적용되지 않고, 크리에이터별로 독립적으로 계산된다.

@@ -35,4 +35,20 @@ pub mod linko_escrow {
     pub fn close_campaign(ctx: Context<CloseCampaign>) -> Result<()> {
         instructions::close_campaign::handle_close_campaign(ctx)
     }
+
+    pub fn create_budget(
+        ctx: Context<CreateBudget>,
+        amount_usdc: u64,
+        platform_authority: Pubkey,
+    ) -> Result<()> {
+        instructions::create_budget::handle_create_budget(ctx, amount_usdc, platform_authority)
+    }
+
+    pub fn budget_campaign(ctx: Context<BudgetCampaign>, amount_usdc: u64) -> Result<()> {
+        instructions::budget_campaign::handle_budget_campaign(ctx, amount_usdc)
+    }
+
+    pub fn top_up_budget(ctx: Context<TopUpBudget>, amount_usdc: u64) -> Result<()> {
+        instructions::top_up_budget::handle_top_up_budget(ctx, amount_usdc)
+    }
 }
