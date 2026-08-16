@@ -2,3 +2,5 @@ node_modules
 wallets/*.json
 dist
 .env
+certs/
+id.json

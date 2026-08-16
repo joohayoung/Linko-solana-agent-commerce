@@ -14,7 +14,7 @@
  *  역참조해서 요청/응답 형태를 그대로 맞춤)
  */
 import fs from "node:fs";
-import { Keypair, Transaction } from "@solana/web3.js";
+import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { connection, WALLETS_DIR, WALLET_IDS } from "./config.mjs";
 
 function loadPlatformKeypair() {
@@ -42,19 +42,24 @@ export async function handlePaymasterRpc(body) {
         return { jsonrpc: "2.0", id, result: { blockhash } };
       }
 
+      // LazorKit은 ExecuteChunk 단계(주소 룩업 테이블 사용 시)에서 레거시 Transaction이 아니라
+      // VersionedTransaction(v0)을 보낸다. 레거시 Transaction.from()으로 v0 트랜잭션을 파싱하면
+      // 헤더/서명자 정보가 깨져서 "missing required signature for instruction" 에러가 난다.
+      // VersionedTransaction.deserialize()는 레거시/v0 포맷을 자동 감지해서 둘 다 처리하므로
+      // 이걸로 통일한다.
       case "signTransaction": {
         const [txBase64] = params;
-        const tx = Transaction.from(Buffer.from(txBase64, "base64"));
-        tx.partialSign(platformKeypair);
-        const signed = tx.serialize({ verifySignatures: false, requireAllSignatures: false });
-        return { jsonrpc: "2.0", id, result: { signed_transaction: signed.toString("base64") } };
+        const tx = VersionedTransaction.deserialize(Buffer.from(txBase64, "base64"));
+        tx.sign([platformKeypair]);
+        const signed = Buffer.from(tx.serialize()).toString("base64");
+        return { jsonrpc: "2.0", id, result: { signed_transaction: signed } };
       }
 
       case "signAndSendTransaction": {
         const [txBase64] = params;
-        const tx = Transaction.from(Buffer.from(txBase64, "base64"));
-        tx.partialSign(platformKeypair);
-        const raw = tx.serialize({ verifySignatures: false, requireAllSignatures: false });
+        const tx = VersionedTransaction.deserialize(Buffer.from(txBase64, "base64"));
+        tx.sign([platformKeypair]);
+        const raw = tx.serialize();
         const signature = await connection.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 3 });
         await connection.confirmTransaction(signature, "confirmed");
         return { jsonrpc: "2.0", id, result: { signature } };

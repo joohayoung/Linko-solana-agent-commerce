@@ -6,14 +6,29 @@
  * Program ID: 4KocVh769f9Z43717gsSW9Wp4863eQ7npKSWEbDbwLPP (Solana Devnet)
  */
 
-import { PublicKey, Keypair, TransactionInstruction, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import {
+  PublicKey,
+  Keypair,
+  TransactionInstruction,
+  Transaction,
+  SystemProgram,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   createTransferCheckedInstruction,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { connection, USDC_DEVNET_MINT, WALLETS_DIR, WALLET_IDS, PLATFORM_FEE_RATE, solscanTxUrl } from "./config.mjs";
+import {
+  connection,
+  USDC_DEVNET_MINT,
+  WALLETS_DIR,
+  WALLET_IDS,
+  PLATFORM_FEE_RATE,
+  LINKO_ALT_ADDRESS,
+  solscanTxUrl,
+} from "./config.mjs";
 import { loadWallet } from "./solanaPay.mjs";
 import fs from "node:fs";
 
@@ -94,6 +109,79 @@ async function getDiscriminator(name) {
   const data = encoder.encode(`global:${name}`);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   return Buffer.from(hashBuffer.slice(0, 8));
+}
+
+/**
+ * create_campaign + 플랫폼 수수료 이체 인스트럭션을 "서명/전송 없이" 조립만 해서 반환.
+ * 광고주 실제 지갑(LazorKit 스마트월렛)으로 브라우저에서 직접 서명하게 할 때 사용 —
+ * 서버는 여기서 아무 키도 쥐고 서명하지 않고, advertiserPubkey는 그냥 값으로만 들어감.
+ * LazorKit 스마트월렛은 off-curve PDA라 ATA 조회 시 allowOwnerOffCurve=true가 필요함.
+ *
+ * SOL 충전/ATA 생성 같은 "플랫폼 전용 서명" 준비 작업은 미리 별도 트랜잭션으로 끝내두고,
+ * 자주 반복되는 고정 계정(USDC 민트, 토큰 프로그램, 에스크로 프로그램, 시스템 프로그램,
+ * 플랫폼 ATA)은 주소 룩업 테이블(ALT)에 담아서 반환한다 — LazorKit의 CPI 서명 래핑
+ * 오버헤드가 커서 ALT 없이는 인스트럭션 하나만으로도 Solana 트랜잭션 크기 한도(1232바이트)를
+ * 넘겨버리기 때문. ALT 덕분에 create_campaign + 수수료 이체를 한 트랜잭션에 같이 담을 수 있다.
+ */
+export async function buildCampaignInstructions({ advertiserPubkey, campaignId, budgetUsdc }) {
+  const platformAuthority = loadWallet(WALLET_IDS.platform);
+  const { campaignPda, vaultPda } = getCampaignPda(advertiserPubkey, campaignId);
+  const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiserPubkey, true);
+  const platformAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, platformAuthority.publicKey);
+
+  // 광고주 서명이 필요 없는 준비 작업(SOL 충전 + 광고주 ATA 생성)은 미리 끝내둠
+  await ensureAdvertiserPrereqAccounts({ advertiserPubkey, needsSolTopUp: true });
+  const platformAtaInfo = await connection.getAccountInfo(platformAta);
+  if (!platformAtaInfo) {
+    const prereqTx = new Transaction().add(
+      createAssociatedTokenAccountInstruction(platformAuthority.publicKey, platformAta, platformAuthority.publicKey, USDC_DEVNET_MINT)
+    );
+    prereqTx.feePayer = platformAuthority.publicKey;
+    await sendAndConfirmTransaction(connection, prereqTx, [platformAuthority], { commitment: "confirmed" });
+  }
+
+  const disc = await getDiscriminator("create_campaign");
+  const safeId = String(campaignId).slice(0, 32);
+  const campaignIdBuf = Buffer.from(safeId, "utf8");
+  const lenBuf = Buffer.alloc(4);
+  lenBuf.writeUInt32LE(campaignIdBuf.length, 0);
+  const rawAmount = BigInt(Math.round(budgetUsdc * 1e6)); // USDC 6 decimals
+  const budgetBuf = Buffer.alloc(8);
+  budgetBuf.writeBigUInt64LE(rawAmount, 0);
+  const platformAuthorityBuf = platformAuthority.publicKey.toBuffer();
+  const ixData = Buffer.concat([disc, lenBuf, campaignIdBuf, budgetBuf, platformAuthorityBuf]);
+
+  const keys = [
+    { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
+    { pubkey: campaignPda, isSigner: false, isWritable: true },
+    { pubkey: vaultPda, isSigner: false, isWritable: true },
+    { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+    { pubkey: advertiserAta, isSigner: false, isWritable: true },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+  ];
+  const instructions = [new TransactionInstruction({ programId: ESCROW_PROGRAM_ID, keys, data: ixData })];
+
+  // 플랫폼 수수료 — 예산과는 별도로 (예산 × PLATFORM_FEE_RATE)만큼 광고주 ATA → 플랫폼 ATA 이체
+  const platformFeeUsdc = budgetUsdc * PLATFORM_FEE_RATE;
+  if (platformFeeUsdc > 0) {
+    const platformFeeRaw = BigInt(Math.round(platformFeeUsdc * 1e6));
+    instructions.push(
+      createTransferCheckedInstruction(advertiserAta, USDC_DEVNET_MINT, platformAta, advertiserPubkey, platformFeeRaw, 6)
+    );
+  }
+
+  // ALT 덕분에 대부분 한 트랜잭션(그룹 1개)에 다 들어가지만, 혹시 여전히 너무 크면 나중에
+  // 그룹을 나눌 수 있게 instructionGroups(배열의 배열) 형태로 반환해둔다.
+  const instructionGroups = [instructions];
+
+  return {
+    instructionGroups,
+    campaignPda: campaignPda.toBase58(),
+    vaultPda: vaultPda.toBase58(),
+    platformFeeUsdc,
+    altAddresses: LINKO_ALT_ADDRESS ? [LINKO_ALT_ADDRESS.toBase58()] : [],
+  };
 }
 
 /**
@@ -393,6 +481,112 @@ export async function getAdvertiserBudgetInfo({ advertiserWalletId = WALLET_IDS.
   }
 
   return { exists: true, budgetPda: budgetPda.toBase58(), vaultPda: vaultPda.toBase58(), vaultBalanceUsdc };
+}
+
+/**
+ * SOL 충전 / ATA 생성처럼 "광고주 서명이 필요 없는(플랫폼 지갑만으로 되는)" 준비 작업을
+ * 광고주가 서명할 트랜잭션과 분리된 별도 트랜잭션으로 먼저 끝내둔다 — 광고주 서명 트랜잭션의
+ * 크기를 최대한 줄이기 위함. create_budget처럼 새 계정(PDA)을 init할 때만 SOL 충전이 필요함.
+ */
+async function ensureAdvertiserPrereqAccounts({ advertiserPubkey, needsSolTopUp }) {
+  const platformAuthority = loadWallet(WALLET_IDS.platform);
+  const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiserPubkey, true);
+
+  const tx = new Transaction();
+
+  if (needsSolTopUp) {
+    // Anchor의 `init` 제약(payer = advertiser)이 PDA/Vault 계정 렌트를 광고주 SOL 잔고에서
+    // 차감함 — 네트워크 수수료(페이마스터 대납)와는 별개. 패스키 지갑은 보통 SOL이 거의 없어서
+    // 부족한 만큼 플랫폼이 미리 채워줌.
+    const MIN_ADVERTISER_SOL_LAMPORTS = 8_000_000; // 0.008 SOL
+    const advertiserSolBalance = await connection.getBalance(advertiserPubkey);
+    if (advertiserSolBalance < MIN_ADVERTISER_SOL_LAMPORTS) {
+      tx.add(
+        SystemProgram.transfer({
+          fromPubkey: platformAuthority.publicKey,
+          toPubkey: advertiserPubkey,
+          lamports: MIN_ADVERTISER_SOL_LAMPORTS - advertiserSolBalance,
+        })
+      );
+    }
+  }
+
+  const advertiserAtaInfo = await connection.getAccountInfo(advertiserAta);
+  if (!advertiserAtaInfo) {
+    tx.add(
+      createAssociatedTokenAccountInstruction(platformAuthority.publicKey, advertiserAta, advertiserPubkey, USDC_DEVNET_MINT)
+    );
+  }
+
+  if (tx.instructions.length === 0) return { ran: false };
+
+  tx.feePayer = platformAuthority.publicKey;
+  const signature = await sendAndConfirmTransaction(connection, tx, [platformAuthority], { commitment: "confirmed" });
+  return { ran: true, signature };
+}
+
+/**
+ * 광고주 예비 예산 풀(Budget PDA) 충전 인스트럭션을 "서명/전송 없이" 조립만 해서 반환.
+ * 광고주의 실제 LazorKit 패스키 스마트월렛으로 브라우저에서 직접 서명하게 할 때 사용.
+ * Budget PDA가 아직 없으면 create_budget(신규 생성+입금), 있으면 top_up_budget(추가 입금).
+ *
+ * create_budget/top_up_budget 둘 다 계정 6~7개를 쓰는데, LazorKit의 CPI 서명 래핑
+ * 오버헤드(secp256r1 서명 검증 등)까지 더해지면 단 하나의 인스트럭션만으로도 Solana 트랜잭션
+ * 크기 한도(1232바이트)를 넘겨버린다. 그래서 자주 반복되는 고정 계정(USDC 민트, 토큰 프로그램,
+ * 에스크로 프로그램, 시스템 프로그램)을 주소 룩업 테이블(ALT)에 담아 함께 반환한다 —
+ * scripts/create-lookup-table.mjs로 미리 만들어둔 LINKO_ALT_ADDRESS를 재사용.
+ */
+export async function buildAdvertiserBudgetInstructions({ advertiserPubkey, amountUsdc }) {
+  const platformAuthority = loadWallet(WALLET_IDS.platform);
+  const { budgetPda, vaultPda } = getBudgetPda(advertiserPubkey);
+  const advertiserAta = await getAssociatedTokenAddress(USDC_DEVNET_MINT, advertiserPubkey, true);
+
+  const budgetInfo = await connection.getAccountInfo(budgetPda);
+  const isNew = !budgetInfo;
+
+  // create_budget만 새 계정을 init하므로 SOL 렌트가 필요함 — top_up_budget은 불필요.
+  await ensureAdvertiserPrereqAccounts({ advertiserPubkey, needsSolTopUp: isNew });
+
+  const disc = await getDiscriminator(isNew ? "create_budget" : "top_up_budget");
+  const rawAmount = BigInt(Math.round(amountUsdc * 1e6));
+  const amountBuf = Buffer.alloc(8);
+  amountBuf.writeBigUInt64LE(rawAmount, 0);
+
+  let ixData;
+  let keys;
+  if (isNew) {
+    const platformAuthorityBuf = platformAuthority.publicKey.toBuffer();
+    ixData = Buffer.concat([disc, amountBuf, platformAuthorityBuf]);
+    keys = [
+      { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
+      { pubkey: budgetPda, isSigner: false, isWritable: true },
+      { pubkey: vaultPda, isSigner: false, isWritable: true },
+      { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+      { pubkey: advertiserAta, isSigner: false, isWritable: true },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ];
+  } else {
+    ixData = Buffer.concat([disc, amountBuf]);
+    keys = [
+      { pubkey: advertiserPubkey, isSigner: true, isWritable: true },
+      { pubkey: budgetPda, isSigner: false, isWritable: true },
+      { pubkey: vaultPda, isSigner: false, isWritable: true },
+      { pubkey: USDC_DEVNET_MINT, isSigner: false, isWritable: false },
+      { pubkey: advertiserAta, isSigner: false, isWritable: true },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ];
+  }
+
+  const instructions = [new TransactionInstruction({ programId: ESCROW_PROGRAM_ID, keys, data: ixData })];
+
+  return {
+    instructions,
+    isNew,
+    budgetPda: budgetPda.toBase58(),
+    vaultPda: vaultPda.toBase58(),
+    altAddresses: LINKO_ALT_ADDRESS ? [LINKO_ALT_ADDRESS.toBase58()] : [],
+  };
 }
 
 /**

@@ -550,5 +550,45 @@
     "thumbnail": "/images/campaigns/moisturizer.svg",
     "shopId": "sundayglow-mall",
     "status": "active"
+  },
+  {
+    "id": "c-e887fbbc266f461f",
+    "advertiser": "342",
+    "advertiserId": "4132403b-bbd0-45a3-b2b9-1e68d6f57ed3",
+    "advertiserWallet": "E977kDannrtesGoMDMZZS3PQyueovsRG91GKboEJmsjf",
+    "product": "242",
+    "description": "2434",
+    "productUrl": "https://sundayglow-mall.com/products/sunscreen-spf50",
+    "guideline": "2342",
+    "tags": [],
+    "price": 2,
+    "currency": "KRW",
+    "commissionTiers": [
+      {
+        "minSales": 0,
+        "maxSales": 10,
+        "rate": 0.1
+      },
+      {
+        "minSales": 11,
+        "maxSales": null,
+        "rate": 0.15
+      }
+    ],
+    "confirmDelayDays": 7,
+    "budgetKrw": 12,
+    "budgetUsdc": 0.008571428571428572,
+    "onchain": {
+      "campaignPda": "3GztiV5jitoipbu5qyiYiYsb4ZsTodEDnWVqU4Yqasfj",
+      "vaultPda": "2gf2G3JVX8oYm4WJQSxTKYhn5BVem1FWCVwqLmz23Spj",
+      "depositTx": "3S3QajiEZNxt2L6uErjZhyr96nhQJtkPRJpdSrQf9SbjrZd2k2s9opVazQkwT7wmd4xShtNGs7nuBicfZeWdUVw9",
+      "extraTxs": [],
+      "platformFeeUsdc": 0.0004285714285714286,
+      "solscanUrl": "https://solscan.io/tx/3S3QajiEZNxt2L6uErjZhyr96nhQJtkPRJpdSrQf9SbjrZd2k2s9opVazQkwT7wmd4xShtNGs7nuBicfZeWdUVw9?cluster=devnet",
+      "signedByAdvertiser": true
+    },
+    "thumbnail": "/images/campaigns/moisturizer.svg",
+    "shopId": "nongshim-mall",
+    "status": "active"
   }
 ]
