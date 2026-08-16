@@ -1,0 +1,3517 @@
+[
+  {
+    "id": "2e4815ed-9f28-4ec8-a27c-47fb56d9d421",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 210,
+    "startedAt": "2026-08-15T10:52:20.799Z",
+    "finishedAt": "2026-08-15T10:52:33.665Z",
+    "analyst": {
+      "summary": "Gemini 응답을 받지 못해 규칙 기반 폴백으로 4개 캠페인을 평가했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): 400"
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-fe550074",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T10:52:27.675Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 210,
+              "campaigns": [
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "Gemini 응답을 받지 못해 성과 점수 비례 기준선을 그대로 적용했습니다. 총 210.00 USDC를 배분했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): 400"
+        },
+        {
+          "type": "tool_call",
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 105,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "tool_call",
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "풀 총액을 초과합니다. 남은 여유분은 약 0 USDC입니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "suggestedWeight 0.5 기준, 모멘텀(momentum=2.0 >= 1.5) 상승 신호가 있으나 단일 캠페인 최대 허용 비율 제한(0.5)에 따라 weight 0.5 적용",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "Gemini API를 쓸 수 없어 기준선(suggestedWeight)을 그대로 적용했습니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 0
+    }
+  },
+  {
+    "id": "b75bb04f-bdec-4cae-bad1-d584089905ce",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 210,
+    "startedAt": "2026-08-15T11:01:52.155Z",
+    "finishedAt": "2026-08-15T11:02:07.089Z",
+    "analyst": {
+      "summary": "Gemini 응답을 받지 못해 규칙 기반 폴백으로 4개 캠페인을 평가했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): 400"
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-a77227b8",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T11:01:59.480Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 210,
+              "campaigns": [
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0272,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "Gemini 응답을 받지 못해 성과 점수 비례 기준선을 그대로 적용했습니다. 총 210.00 USDC를 배분했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): 400"
+        },
+        {
+          "type": "tool_call",
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 105,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "tool_call",
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "풀 총액을 초과합니다. 남은 여유분은 약 0 USDC입니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "momentum 2.0(>= 1.5)으로 높은 성과 추세를 보이지만, 단일 캠페인 최대 배분 비율 한도(0.5)에 따라 weight 0.5를 유지 및 배분합니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "Gemini API를 쓸 수 없어 기준선(suggestedWeight)을 그대로 적용했습니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 0
+    }
+  },
+  {
+    "id": "da5128b1-a561-45ae-af00-dd568887f4df",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 210,
+    "startedAt": "2026-08-15T11:05:50.553Z",
+    "finishedAt": "2026-08-15T11:06:13.645Z",
+    "analyst": {
+      "summary": "Gemini 응답을 받지 못해 규칙 기반 폴백으로 4개 캠페인을 평가했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Please ensure that the number of function response parts is equal to the number of function call parts of the function call turn.\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n"
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-7c6c811c",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T11:06:06.282Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 210,
+              "campaigns": [
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0136,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 100,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0.5
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 0,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "Gemini API를 쓸 수 없어 서버 규칙 기반으로 계산한 점수입니다.",
+                  "suggestedWeight": 0
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "Gemini 응답을 받지 못해 성과 점수 비례 기준선을 그대로 적용했습니다. 총 210.00 USDC를 배분했습니다.",
+      "usedFallback": true,
+      "transcript": [
+        {
+          "type": "note",
+          "text": "Gemini가 1개 캠페인은 이미 실제로 배분한 뒤 실패했습니다 — 그 배분은 유지하고 나머지만 로컬 폴백으로 처리합니다."
+        },
+        {
+          "type": "fallback",
+          "reason": "Gemini 호출 실패 (모든 모델 소진): {\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"Please ensure that the number of function response parts is equal to the number of function call parts of the function call turn.\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n"
+        },
+        {
+          "type": "tool_call",
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 105,
+            "txSignature": null
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "높은 모멘텀(2.0) 신호로 상향 조정 요인이 존재하나, 캠페인별 최대 배분 비율 한도인 0.5를 적용하여 weight 0.5를 유지합니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "Gemini API를 쓸 수 없어 기준선(suggestedWeight)을 그대로 적용했습니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 0
+    }
+  },
+  {
+    "id": "d2ac610f-e685-45bd-bc6a-9a59f983e3f5",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 210,
+    "startedAt": "2026-08-15T11:14:34.432Z",
+    "finishedAt": "2026-08-15T11:15:10.565Z",
+    "analyst": {
+      "summary": "활성 캠페인 4건을 분석한 결과, '조던 신발'과 '무기자차 선크림'은 높은 확정 전환율과 0%의 취소율을 보이며 뛰어난 성과를 기록하고 있습니다. 반면 2건의 테스트 캠페인은 예산 소진과 크리에이터 참여 실적이 없어 성과가 부진한 상태입니다. 높은 성과를 내는 실집행 캠페인으로 리소스를 집중하고 미집행 캠페인의 세팅을 재점검하는 전략이 필요합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 525,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 105,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 2.142857142857143,
+              "spentUsdc": 0
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0109,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.0612,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "note",
+          "round": 4,
+          "text": "```json\n{\n  \"summary\": \"총 4개의 활성 캠페인 중 실질적으로 집행 중인 '조던 신발'과 '무기자차 선크림'은 높은 전환율과 0%의 취소율을 기록하며 우수한 성과 모멘텀을 이어가고 있습니다. 반면 2개의 테스트 캠페인은 예산 소진 및 크리에이터 참여 실적이 없어 별도의 집행 준비 및 모니터링이 필요합니다. 우수한 성과를 보이는 캠페인을 중심으로 예산 배분 및 크리에이터 확장을 추진하는 것을 권장합니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"productName\": \"조던 신발\",\n      \"score\": 88,\n      \"signal\": \"scale\",\n      \"reasoning\": \"전환율 100%와 모멘텀 2.0으로 성과 효율이 매우 높고 취소율이 0%입니다. 예산 소진율(6.12%) 대비 높은 전환 성과를 보이고 있어 크리에이터 추가 및 집행 확대를 권장합니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"productName\": \"무기자차 선크림\",\n      \"score\": 82,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"전환율 33.33%, 취소율 0%, 모멘텀 2.0을 기록하여 안정적인 성과를 나타내고 있습니다. 2명의 크리에이터가 참여 중이며 현 상태를 유효하게 유지할 수 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"productName\": \"테스트 캠페인 A\",\n      \"score\": 20,\n      \"signal\": \"watch\",\n      \"reasoning\": \"예산 소진, 크리에이터 참여 및 전환 실적이 모두 0건인 테스트 캠페인입니다. 크리에이터 모집 및 상세 세팅 점검이 필요합니다.\"\n    },\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"productName\": \"테스트 캠페인 B\",\n      \"score\": 20,\n      \"signal\": \"watch\",\n      \"reasoning\": \"예산 소진, 크리에이터 참여 및 전환 실적이 모두 0건인 테스트 캠페인입니다. 크리에이터 모집 및 상세 세팅 점검이 필요합니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "활성 캠페인 4건을 분석한 결과, '조던 신발'과 '무기자차 선크림'은 높은 확정 전환율과 0%의 취소율을 보이며 뛰어난 성과를 기록하고 있습니다. 반면 2건의 테스트 캠페인은 예산 소진과 크리에이터 참여 실적이 없어 성과가 부진한 상태입니다. 높은 성과를 내는 실집행 캠페인으로 리소스를 집중하고 미집행 캠페인의 세팅을 재점검하는 전략이 필요합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 90,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.0612,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100%와 모멘텀 2.0을 기록하며 효율이 가장 뛰어납니다. 예산 소진율 대비 높은 전환 성과를 보이고 있어 지속적인 리소스 투입이 권장됩니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 82,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0109,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "전환율 33.33%와 모멘텀 2.0으로 긍정적인 상승 흐름을 보이고 있으며, 2명의 크리에이터가 참여하여 안정적으로 집행되고 있습니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 20,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "예산 소진 및 전환 실적이 없는 미집행 캠페인으로, 크리에이터 모집 및 활성화 전략이 필요합니다."
+              },
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 20,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "예산 소진 및 전환 실적이 없는 미집행 캠페인으로, 크리에이터 모집 및 활성화 전략이 필요합니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-73955c12",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T11:14:57.581Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 210,
+              "campaigns": [
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 90,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.0612,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100%와 모멘텀 2.0을 기록하며 효율이 가장 뛰어납니다. 예산 소진율 대비 높은 전환 성과를 보이고 있어 지속적인 리소스 투입이 권장됩니다.",
+                  "suggestedWeight": 0.425
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 82,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0109,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "전환율 33.33%와 모멘텀 2.0으로 긍정적인 상승 흐름을 보이고 있으며, 2명의 크리에이터가 참여하여 안정적으로 집행되고 있습니다.",
+                  "suggestedWeight": 0.387
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 20,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "예산 소진 및 전환 실적이 없는 미집행 캠페인으로, 크리에이터 모집 및 활성화 전략이 필요합니다.",
+                  "suggestedWeight": 0.094
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 20,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "예산 소진 및 전환 실적이 없는 미집행 캠페인으로, 크리에이터 모집 및 활성화 전략이 필요합니다.",
+                  "suggestedWeight": 0.094
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 라운드에서는 높은 모멘텀과 전황 효율을 기록한 '조던 신발' 및 '무기자차 선크림' 캠페인에 상향 조정 신호를 적용하여 각각 한도 내 최대 비율(0.50)과 상향 비율(0.487)로 예산을 우선 배분했습니다. 반면, 실적이 없는 미집행 테스트 캠페인 A와 B는 표본 부족 감산 규칙을 적용하여 배분 비율을 0으로 조정해 불필요한 트랜잭션을 방지하고 남은 예산을 Vault에 안전하게 보존했습니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1",
+            "weight": 0.5,
+            "reason": "momentum 2.0 (>= 1.5) 신호로 +0.10 가산하여 조정했으나, 캠페인당 최대 배분 비율 한도(0.50)를 적용하여 0.50으로 최종 반영"
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 105,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "momentum 2.0 (>= 1.5) 신호에 따라 기준선 0.387 대비 +0.10 상향 조정하여 0.487로 반영",
+            "campaignId": "c-924c80c9e1bf4c29",
+            "weight": 0.487
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 102.27,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 예산 배분 라운드 검토 종합 총평입니다.\n\n- **조던 신발 (`c-3c2f763527e546f1`)**: 모멘텀(2.0 >= 1.5)이 우수하여 기준선 대비 상향 조정을 적용하였으며, 단일 캠페인 최대 배분 비율 한도인 `0.50`을 적용해 증액 배분했습니다.\n- **무기자차 선크림 (`c-924c80c9e1bf4c29`)**: 높인 모멘텀(2.0 >= 1.5) 신호 및 안정적인 참여 크리에이터 수를 감안하여 기준선 대비 `+0.10` 상향한 `0.487` 비율로 배분했습니다.\n- **미집행 테스트 캠페인 A/B (`c-7419b1d05f1d44a0`, `c-773640cceee14dbd`)**: 실적이 없는 미집행 상태로 표본이 부족하여 보수적 감산 규칙을 적용함에 따라 배분 비율이 `0`이 되어 이번 라운드 배분 대상에서 제외하였습니다.\n\n성과가 뛰어난 상승세 캠페인에 예산을 집중 투입하고 미집행 캠페인은 보수적으로 보류하여 예비 예산 Vault의 효율성을 제고하였습니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 라운드에서는 높은 모멘텀과 전황 효율을 기록한 '조던 신발' 및 '무기자차 선크림' 캠페인에 상향 조정 신호를 적용하여 각각 한도 내 최대 비율(0.50)과 상향 비율(0.487)로 예산을 우선 배분했습니다. 반면, 실적이 없는 미집행 테스트 캠페인 A와 B는 표본 부족 감산 규칙을 적용하여 배분 비율을 0으로 조정해 불필요한 트랜잭션을 방지하고 남은 예산을 Vault에 안전하게 보존했습니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0.5,
+          "amountUsdc": 105,
+          "amountKrw": 147000,
+          "reason": "momentum 2.0 (>= 1.5) 신호로 +0.10 가산하여 조정했으나, 캠페인당 최대 배분 비율 한도(0.50)를 적용하여 0.50으로 최종 반영",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.487,
+          "amountUsdc": 102.27,
+          "amountKrw": 143178,
+          "reason": "momentum 2.0 (>= 1.5) 신호에 따라 기준선 0.387 대비 +0.10 상향 조정하여 0.487로 반영",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 2.73
+    }
+  },
+  {
+    "id": "d98cbecd-1784-4769-8118-9903ce5b10b4",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 210,
+    "startedAt": "2026-08-15T11:20:55.391Z",
+    "finishedAt": "2026-08-15T11:21:30.197Z",
+    "analyst": {
+      "summary": "해당 광고주의 활성 캠페인 분석 결과, 실무 진행 캠페인인 '조던 신발'과 '무기자차 선크림'은 높은 확정 전환율과 취소율 0%를 유지하며 매우 강력한 성과 모멘텀을 보여주고 있습니다. 반면 2건의 테스트 캠페인은 아직 크리에이터 참여 및 전환 지표가 발생하지 않아 추가적인 활성화 작업이 필요합니다. 성과가 입증된 주요 캠페인에 스케일업 자원을 우선적으로 배분하고 미활성 테스트 캠페인의 모니터링을 병행하는 것이 바람직합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 627.27,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 210,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 2.142857142857143,
+              "spentUsdc": 0
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0091,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.0306,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"score\": 92,\n      \"signal\": \"scale\",\n      \"reasoning\": \"확정 전환율 100%로 가장 우수한 성과를 보이고 있으며, 최근 모멘텀(2.0) 및 취소율 0%로 매우 긍정적인 신호를 나타내고 있습니다. 참여 크리에이터 확대를 통한 스케일업이 추천됩니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"score\": 85,\n      \"signal\": \"scale\",\n      \"reasoning\": \"확정 전환율 33.33% 및 최근 긍정적인 모멘텀(2.0)을 기록하며 2명의 크리에이터가 안정적으로 성과를 내고 있습니다. 취소율 0%로 우수한 흐름을 보이고 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"score\": 40,\n      \"signal\": \"watch\",\n      \"reasoning\": \"테스트 캠페인으로 현재 참여 크리에이터 및 발생한 전환 건수가 없어 성과 판단을 위한 데이터가 누적되기를 모니터링할 필요가 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"score\": 40,\n      \"signal\": \"watch\",\n      \"reasoning\": \"테스트 캠페인으로 현재 참여 크리에이터 및 소진 예산이 0인 상태입니다. 크리에이터 참여 및 초기 전환 추이를 지속 관찰해야 합니다.\"\n    }\n  ],\n  \"summary\": \"해당 광고주의 활성 캠페인 중 실무 진행 캠페인(조던 신발, 무기자차 선크림)은 높고 안정적인 전환율과 긍정적인 모멘텀을 보이며 취소율 0%의 우수한 성과를 창출하고 있습니다. 반면 테스트 캠페인 2건은 아직 크리에이터 참여 및 전환 데이터가 누적되지 않은 초기 상태입니다. 실 성과가 발생하는 주요 캠페인에 예산 및 크리에이터 매칭을 적극적으로 확대하면서 테스트 캠페인의 모니터링을 병행하는 전략을 권장합니다.\"\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "해당 광고주의 활성 캠페인 분석 결과, 실무 진행 캠페인인 '조던 신발'과 '무기자차 선크림'은 높은 확정 전환율과 취소율 0%를 유지하며 매우 강력한 성과 모멘텀을 보여주고 있습니다. 반면 2건의 테스트 캠페인은 아직 크리에이터 참여 및 전환 지표가 발생하지 않아 추가적인 활성화 작업이 필요합니다. 성과가 입증된 주요 캠페인에 스케일업 자원을 우선적으로 배분하고 미활성 테스트 캠페인의 모니터링을 병행하는 것이 바람직합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 92,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.0306,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100%와 모멘텀 2.0으로 매우 뛰어난 성과를 기록 중이며, 취소율 0%로 안정적인 효율을 보여주고 있습니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 85,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0091,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "33.33%의 우수한 확정 전환율과 최근 지속적인 주문 상승 모멘텀을 보이고 있으며, 2명의 크리에이터가 안정적으로 성과를 내고 있습니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 30,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 크리에이터 및 발생 전환 건수가 0인 상태로, 성과 판단을 위한 데이터 누적이 더 필요한 미활성 캠페인입니다."
+              },
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 30,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "예산 소진 및 전환 데이터가 아직 발생하지 않은 초기 테스트 단계의 캠페인입니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-cdc3bdfc",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T11:21:17.317Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 210,
+              "campaigns": [
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 92,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.0306,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100%와 모멘텀 2.0으로 매우 뛰어난 성과를 기록 중이며, 취소율 0%로 안정적인 효율을 보여주고 있습니다.",
+                  "suggestedWeight": 0.23
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 85,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0091,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "33.33%의 우수한 확정 전환율과 최근 지속적인 주문 상승 모멘텀을 보이고 있으며, 2명의 크리에이터가 안정적으로 성과를 내고 있습니다.",
+                  "suggestedWeight": 0.213
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 30,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 크리에이터 및 발생 전환 건수가 0인 상태로, 성과 판단을 위한 데이터 누적이 더 필요한 미활성 캠페인입니다.",
+                  "suggestedWeight": 0.075
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 30,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "예산 소진 및 전환 데이터가 아직 발생하지 않은 초기 테스트 단계의 캠페인입니다.",
+                  "suggestedWeight": 0.075
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "성과가 검증된 '조던 신발'과 '무기자차 선크림' 캠페인은 높은 상승 모멘텀(2.0)을 반영하여 기준선 대비 가중치를 적극 상향 조정(+0.10) 후 탑업을 집행했습니다. 반면, 데이터 및 참여가 부족한 초기 테스트 캠페인 2건은 표본 부족 신호에 따라 이번 라운드 배분을 보류하고 Vault 예산을 온전히 유지하여 운용 효율성을 극대화했습니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "momentum이 2.0(>=1.5)으로 강력한 상승 추세를 보여 기준선(0.23) 대비 +0.10 감안하여 0.33으로 조정 반영했습니다.",
+            "campaignId": "c-3c2f763527e546f1",
+            "weight": 0.33
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 69.3,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "weight": 0.313,
+            "campaignId": "c-924c80c9e1bf4c29",
+            "reason": "momentum이 2.0(>=1.5)으로 지속적인 우수 모멘텀을 보여 기준선(0.213) 대비 +0.10 감안하여 0.313으로 조정 반영했습니다."
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 65.73,
+            "txSignature": null
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 예산 배분 라운드 검토 및 집행 총평입니다.\n\n- **조던 신발 (`c-3c2f763527e546f1`)**: 100%의 확정 전환율과 2.0의 높은 상승 모멘텀(>=1.5)을 기록하여 성과를 적극적으로 확장하기 위해 기준선 대비 +0.10 상향 조정한 가중치를 반영했습니다.\n- **무기자차 선크림 (`c-924c80c9e1bf4c29`)**: 우수한 전환율과 지속적인 성장 모멘텀(2.0)을 기반으로 모멘텀 가산(+0.10)을 적용하여 기준선 대비 상향 조정된 가중치를 반영했습니다.\n- **테스트 캠페인 A (`c-7419b1d05f1d44a0`) & 테스트 캠페인 B (`c-773640cceee14dbd`)**: 현재 전환 발생 및 크리에이터 활동 표본 데이터가 부족하여 보수적 조정 신호(최대 -0.15)를 적용, 예산 추가 배분을 진행하지 않고 남은 예산을 Vault에 안전하게 유지했습니다. \n\n성과가 검증된 핵심 캠페인 중심으로 효율적인 예산 배분을 완료했습니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "성과가 검증된 '조던 신발'과 '무기자차 선크림' 캠페인은 높은 상승 모멘텀(2.0)을 반영하여 기준선 대비 가중치를 적극 상향 조정(+0.10) 후 탑업을 집행했습니다. 반면, 데이터 및 참여가 부족한 초기 테스트 캠페인 2건은 표본 부족 신호에 따라 이번 라운드 배분을 보류하고 Vault 예산을 온전히 유지하여 운용 효율성을 극대화했습니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0.33,
+          "amountUsdc": 69.3,
+          "amountKrw": 97020,
+          "reason": "momentum이 2.0(>=1.5)으로 강력한 상승 추세를 보여 기준선(0.23) 대비 +0.10 감안하여 0.33으로 조정 반영했습니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0.313,
+          "amountUsdc": 65.73,
+          "amountKrw": 92022,
+          "reason": "momentum이 2.0(>=1.5)으로 지속적인 우수 모멘텀을 보여 기준선(0.213) 대비 +0.10 감안하여 0.313으로 조정 반영했습니다.",
+          "txSignature": null,
+          "solscanUrl": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 74.97
+    }
+  },
+  {
+    "id": "5eaa8a6a-ebe1-43e0-968a-f89bb4d656b9",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 3.57,
+    "startedAt": "2026-08-15T13:55:39.583Z",
+    "finishedAt": "2026-08-15T13:56:23.436Z",
+    "analyst": {
+      "summary": "조사 대상 4개 활성 캠페인 중 '조던 신발'과 '무기자차 선크림'은 각각 100%와 33.3%의 높은 확정 전환율과 0%의 취소율을 기록하며 우수한 성과를 보이고 있으나, 예산 소진율은 아직 초기 단계입니다. 반면 2개의 테스트 캠페인은 참여 크리에이터 및 주문 실적이 없어 성과 창출을 위한 캠페인 점검 및 마케팅 활성화가 필요합니다. 전반적으로 모든 캠페인의 취소율이 0%로 유지되어 서비스 품질 및 안정성은 우수한 편입니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 693,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 279.3,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 2.142857142857143,
+              "spentUsdc": 0
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0083,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.023,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"summary\": \"조사 대상 4개 활성 캠페인 중 실적이 발생 중인 '조던 신발'과 '무기자차 선크림'은 각각 100%와 33.3%의 높은 확정 전환율과 0%의 취소율을 기록하며 우수한 성과를 보이고 있으나, 예산 소진율은 아직 초기 단계입니다. 반면 2개의 테스트 캠페인은 참여 크리에이터 및 주문 실적이 없어 캠페인 세팅 점검 및 크리에이터 유입 정책이 필요합니다. 전체 캠페인의 취소율은 모두 0%로 안정적인 상태입니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"product\": \"조던 신발\",\n      \"score\": 90,\n      \"signal\": \"boost\",\n      \"metrics\": {\n        \"conversionRate\": 1.0,\n        \"budgetUsedRate\": 0.023,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 1,\n        \"momentumRatio\": 2.0\n      },\n      \"reasoning\": \"확정 전환율이 100%로 매우 우수하고 최근 주문 모멘텀이 상승세이며 취소율도 0%입니다. 예산 소진율(2.3%)이 낮아 성장 잠재력이 크므로 더 많은 크리에이터 참여를 유도하여 캠페인을 확장(boost)하는 것이 권장됩니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"product\": \"무기자차 선크림\",\n      \"score\": 82,\n      \"signal\": \"keep\",\n      \"metrics\": {\n        \"conversionRate\": 0.3333,\n        \"budgetUsedRate\": 0.0083,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 2,\n        \"momentumRatio\": 2.0\n      },\n      \"reasoning\": \"33.33%의 우수한 확정 전환율과 2명의 크리에이터 참여, 최근 3건의 확정 주문으로 긍정적인 모멘텀을 형성하고 있습니다. 취소율이 0%로 매우 안정적이며 예산 소진율(0.83%) 여유가 충분하여 현 상태를 유지하며 운영할 수 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"product\": \"테스트 캠페인 A\",\n      \"score\": 15,\n      \"signal\": \"monitor\",\n      \"metrics\": {\n        \"conversionRate\": 0.0,\n        \"budgetUsedRate\": 0.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 0,\n        \"momentumRatio\": 1.0\n      },\n      \"reasoning\": \"참여 크리에이터 및 주문 실적이 없어 전환율과 예산 소진율 모두 0%입니다. 취소율 이슈는 없으나 실적 창출을 위한 크리에이터 섭외 및 설정 점검이 필요한 모니터링 대상입니다.\"\n    },\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"product\": \"테스트 캠페인 B\",\n      \"score\": 15,\n      \"signal\": \"monitor\",\n      \"metrics\": {\n        \"conversionRate\": 0.0,\n        \"budgetUsedRate\": 0.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 0,\n        \"momentumRatio\": 1.0\n      },\n      \"reasoning\": \"참여 크리에이터 및 주문 건수가 0인 미활성화 상태입니다. 취소율은 0%로 기준 조건을 만족하나, 성과 창출을 위해 가속화 전략 수립 및 모니터링이 필요합니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "조사 대상 4개 활성 캠페인 중 '조던 신발'과 '무기자차 선크림'은 각각 100%와 33.3%의 높은 확정 전환율과 0%의 취소율을 기록하며 우수한 성과를 보이고 있으나, 예산 소진율은 아직 초기 단계입니다. 반면 2개의 테스트 캠페인은 참여 크리에이터 및 주문 실적이 없어 성과 창출을 위한 캠페인 점검 및 마케팅 활성화가 필요합니다. 전반적으로 모든 캠페인의 취소율이 0%로 유지되어 서비스 품질 및 안정성은 우수한 편입니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 90,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.023,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100%와 취소율 0%로 매우 높은 성과 품질을 보여줍니다. 예산 소진율이 2.3%로 초기 단계이므로 추가 크리에이터 유입을 통해 규모를 확대할 여지가 큽니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 82,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0083,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "33.33%의 우수한 확정 전환율과 양호한 최근 주문 상승 모멘텀을 기록하고 있습니다. 취소율이 0%로 안정적이며 남은 예산 여유가 충분하여 우수한 성과 유지가 기대됩니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 15,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 크리에이터와 주문 실적이 없어 전환율 및 예산 소진율이 모두 0%입니다. 취소율 문제는 없으나 크리에이터 유입 및 설정 재점검이 필요합니다."
+              },
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 15,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 실적 및 주문이 발생하지 않은 미활성 캠페인입니다. 성과 창출을 위해 섭외 전략 변경 및 활성화 노력이 시급합니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-aef766f4",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T13:56:08.295Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 3.57,
+              "campaigns": [
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 90,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.023,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100%와 취소율 0%로 매우 높은 성과 품질을 보여줍니다. 예산 소진율이 2.3%로 초기 단계이므로 추가 크리에이터 유입을 통해 규모를 확대할 여지가 큽니다.",
+                  "suggestedWeight": 0.225
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 82,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0083,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "33.33%의 우수한 확정 전환율과 양호한 최근 주문 상승 모멘텀을 기록하고 있습니다. 취소율이 0%로 안정적이며 남은 예산 여유가 충분하여 우수한 성과 유지가 기대됩니다.",
+                  "suggestedWeight": 0.205
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 15,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 크리에이터와 주문 실적이 없어 전환율 및 예산 소진율이 모두 0%입니다. 취소율 문제는 없으나 크리에이터 유입 및 설정 재점검이 필요합니다.",
+                  "suggestedWeight": 0.038
+                },
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 15,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 실적 및 주문이 발생하지 않은 미활성 캠페인입니다. 성과 창출을 위해 섭외 전략 변경 및 활성화 노력이 시급합니다.",
+                  "suggestedWeight": 0.038
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 라운드 예산 배분 검토 결과, 성과 품질과 최근 모멘텀(2.0)이 우수한 '조던 신발'과 '무기자차 선크림' 캠페인은 상승 추세를 반영하여 기준선 대비 각각 +0.10 상향된 weight(0.325 및 0.305)를 결정하였습니다. 반면, 주문 실적과 크리에이터 참여가 없는 미활성 테스트 캠페인 A/B는 표본 부족 감점 항목을 적용하여 weight 0으로 배분에서 제외하였습니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1",
+            "reason": "momentum이 2.0(>= 1.5)으로 강한 상승 추세를 보여 기준선(0.225) 대비 +0.10 상향 조정하여 0.325 결정",
+            "weight": 0.325
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-3c2f763527e546f1은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29",
+            "weight": 0.305,
+            "reason": "momentum이 2.0(>= 1.5)으로 최근 주문 상승 모멘텀이 우수하여 기준선(0.205) 대비 +0.10 상향 조정하여 0.305 결정"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-924c80c9e1bf4c29은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 라운드 예산 배분 검토 결과 총평입니다.\n\n- **조던 신발 (`c-3c2f763527e546f1`)**: 전환율 100% 및 취소율 0%로 성과 품질이 뛰어나며, 모멘텀(2.0)이 강하게 유지되고 있어 상승 추세를 반영하여 기준선(0.225) 대비 +0.10 상향한 **weight 0.325**로 결정하였습니다.\n- **무기자차 선크림 (`c-924c80c9e1bf4c29`)**: 우수한 전환율과 안정적인 취소율(0%)을 보이며 우수한 모멘텀(2.0)을 기록하고 있어 기준선(0.205) 대비 +0.10 상향한 **weight 0.305**로 결정하였습니다.\n- **테스트 캠페인 A (`c-7419b1d05f1d44a0`) & 테스트 캠페인 B (`c-773640cceee14dbd`)**: 크리에이터 참여 및 주문 실적이 전혀 없는 미활성 상태(표본 부족)로, 보수적 판단 기준(-0.15 감점)을 적용하여 **weight 0**으로 설정하고 배분 대상에서 제외하였습니다.\n\n*(참고: 성과가 우수한 상위 2개 캠페인에 대해 배분을 시도하였으나, 온체인 에스크로 미생성 상태로 인해 트랜잭션 처리가 완료되지 않았습니다. 해당 캠페인들의 에스크로 상태 점검 후 재시도가 필요합니다.)*"
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 라운드 예산 배분 검토 결과, 성과 품질과 최근 모멘텀(2.0)이 우수한 '조던 신발'과 '무기자차 선크림' 캠페인은 상승 추세를 반영하여 기준선 대비 각각 +0.10 상향된 weight(0.325 및 0.305)를 결정하였습니다. 반면, 주문 실적과 크리에이터 참여가 없는 미활성 테스트 캠페인 A/B는 표본 부족 감점 항목을 적용하여 weight 0으로 배분에서 제외하였습니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 3.57
+    }
+  },
+  {
+    "id": "178560fd-c505-4568-ab07-76f47d07ab38",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 3.57,
+    "startedAt": "2026-08-15T14:03:00.695Z",
+    "finishedAt": "2026-08-15T14:03:50.240Z",
+    "analyst": {
+      "summary": "광고주의 활성 캠페인 4건을 분석한 결과, '테스트 캠페인 B'는 200%의 높은 전환율과 66.27%의 예산 소진율을 기록하여 예산 고갈 임박에 따른 집중 관리 및 증액 조치가 최우선적으로 필요합니다. '조던 신발'과 '무기자차 선크림'은 우수한 전환율과 모멘텀을 바탕으로 안정적인 성과를 보이고 있어 현행 유지 조치가 적합합니다. 반면 '테스트 캠페인 A'는 크리에이터 참여와 주문 실적이 전무하여 크리에이터 섭외 및 마케팅 전략 재검토가 권장됩니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 693,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 279.3,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 2.142857142857143,
+              "spentUsdc": 1.42
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0083,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.023,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 2,
+            "budgetUsedRate": 0.6627,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 3
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 2,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"summary\": \"광고주의 활성 캠페인 4건을 분석한 결과, '테스트 캠페인 B'는 200%의 높은 확정 전환율과 66.27%의 높은 예산 소진율을 기록하여 빠른 예산 소진 대비 및 성과 극대화를 위한 최우선 관리가 필요합니다. '조던 신발'과 '무기자차 선크림'은 양호한 전환율과 모멘텀을 바탕으로 안정적인 성과를 보이고 있으나 예산 소진율이 낮아 지속적인 관찰이 유효합니다. 성과가 발생하지 않은 '테스트 캠페인 A'는 크리에이터 참여 유도 및 운영 전략 재검토가 요구됩니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"product\": \"테스트 캠페인 B\",\n      \"score\": 95,\n      \"signal\": \"boost\",\n      \"metrics\": {\n        \"conversionRate\": 2.0,\n        \"budgetUsedRate\": 0.6627,\n        \"momentumRatio\": 2.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 1\n      },\n      \"reasoning\": \"확정 전환율이 200%로 매우 높고 예산 소진율도 66.27%로 소진 임박 상태입니다. 고성과 캠페인으로서 예산 증액 및 우선순위 상향 조치가 시급합니다.\"\n    },\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"product\": \"조던 신발\",\n      \"score\": 80,\n      \"signal\": \"keep\",\n      \"metrics\": {\n        \"conversionRate\": 1.0,\n        \"budgetUsedRate\": 0.023,\n        \"momentumRatio\": 2.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 1\n      },\n      \"reasoning\": \"확정 전환율 100% 및 최근 모멘텀 증가(2.0)를 기록하고 있습니다. 예산 소진율은 2.3%로 아직 초기 단계이며 지속적인 성과 집행을 유지하는 것이 좋습니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"product\": \"무기자차 선크림\",\n      \"score\": 70,\n      \"signal\": \"keep\",\n      \"metrics\": {\n        \"conversionRate\": 0.3333,\n        \"budgetUsedRate\": 0.0083,\n        \"momentumRatio\": 2.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 2\n      },\n      \"reasoning\": \"2명의 크리에이터가 참여하여 총 7건의 주문과 33.33%의 전환율을 보이며, 모멘텀 비율 2.0으로 긍정적인 추세를 유지하고 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"product\": \"테스트 캠페인 A\",\n      \"score\": 20,\n      \"signal\": \"monitor\",\n      \"metrics\": {\n        \"conversionRate\": 0.0,\n        \"budgetUsedRate\": 0.0,\n        \"momentumRatio\": 1.0,\n        \"cancelRate\": 0.0,\n        \"creatorCount\": 0\n      },\n      \"reasoning\": \"참여 크리에이터 및 주문 발생이 전혀 없는 비활성 상태입니다. 크리에이터 유치 전략 수정 및 초기 모니터링이 필요합니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "광고주의 활성 캠페인 4건을 분석한 결과, '테스트 캠페인 B'는 200%의 높은 전환율과 66.27%의 예산 소진율을 기록하여 예산 고갈 임박에 따른 집중 관리 및 증액 조치가 최우선적으로 필요합니다. '조던 신발'과 '무기자차 선크림'은 우수한 전환율과 모멘텀을 바탕으로 안정적인 성과를 보이고 있어 현행 유지 조치가 적합합니다. 반면 '테스트 캠페인 A'는 크리에이터 참여와 주문 실적이 전무하여 크리에이터 섭외 및 마케팅 전략 재검토가 권장됩니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 95,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 2,
+                  "budgetUsedRate": 0.6627,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 200%와 예산 소진율 66.27%를 기록하여 가장 우수한 성과를 내고 있으며, 예산 고갈이 임박하여 최우선 증액 관리가 필요합니다."
+              },
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 80,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.023,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100%와 2.0의 긍정적인 모멘텀을 유지하는 고효율 캠페인입니다. 예산 소진율은 2.3%로 여유가 있어 집행 유지가 권장됩니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 70,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0083,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "크리에이터 2명이 참여하여 33.33%의 안정적인 전환율과 상승 모멘텀을 보이고 있으나, 예산 소진율이 0.83%로 낮아 추가 활성화가 유효합니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 20,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "크리에이터 참여, 예산 소진, 전환 발생이 모두 0인 미진한 상태로, 크리에이터 섭외 및 리워드 조건 재검토가 필요합니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-ee3f2f0a",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-15T14:03:29.886Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 3.57,
+              "campaigns": [
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 95,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 2,
+                    "budgetUsedRate": 0.6627,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 200%와 예산 소진율 66.27%를 기록하여 가장 우수한 성과를 내고 있으며, 예산 고갈이 임박하여 최우선 증액 관리가 필요합니다.",
+                  "suggestedWeight": 0.238
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 80,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.023,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100%와 2.0의 긍정적인 모멘텀을 유지하는 고효율 캠페인입니다. 예산 소진율은 2.3%로 여유가 있어 집행 유지가 권장됩니다.",
+                  "suggestedWeight": 0.2
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 70,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0083,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "크리에이터 2명이 참여하여 33.33%의 안정적인 전환율과 상승 모멘텀을 보이고 있으나, 예산 소진율이 0.83%로 낮아 추가 활성화가 유효합니다.",
+                  "suggestedWeight": 0.175
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 20,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "크리에이터 참여, 예산 소진, 전환 발생이 모두 0인 미진한 상태로, 크리에이터 섭외 및 리워드 조건 재검토가 필요합니다.",
+                  "suggestedWeight": 0.05
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 라운드 예산 배분에서는 성과와 상승 모멘텀(momentum >= 1.5)이 확인된 캠페인들에 대해 weight를 상향 조정했습니다. 에스크로가 정상 연결된 '테스트 캠페인 B'에는 성공적으로 예산 배분이 완료되었으나, '조던 신발'과 '무기자차 선크림'은 온체인 에스크로 미생성 상태로 인해 반영되지 않았습니다. 참여 실적이 부진한 '테스트 캠페인 A'는 표본 부족 신호로 인해 weight가 0 이하로 조정되어 배분에서 제외되었습니다. 미집행된 예산은 Vault에 보관되어 다음 라운드 실행 시 재검토될 예정입니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-773640cceee14dbd",
+            "weight": 0.338,
+            "reason": "모멘텀 신호(momentum 2.0 >= 1.5)가 확인되어 기준선(0.238) 대비 +0.10 상향 조정하였습니다."
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 1.21,
+            "txSignature": "3MfvVWV3rhbSqtrS3nQ1f4K3tXgcFh1cMoV3gpgFmfXS4c8zJEU7EzqbroxNPgcMi8MActvebgtfnYRgqA6cMzBA"
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "모멘텀 신호(momentum 2.0 >= 1.5)가 확인되어 기준선(0.200) 대비 +0.10 상향 조정하였습니다.",
+            "weight": 0.3,
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-3c2f763527e546f1은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "weight": 0.275,
+            "campaignId": "c-924c80c9e1bf4c29",
+            "reason": "모멘텀 신호(momentum 2.0 >= 1.5)가 확인되어 기준선(0.175) 대비 +0.10 상향 조정하였습니다."
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-924c80c9e1bf4c29은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 라운드 예산 배분 실행 결과를 종합하여 보고합니다.\n\n### 캠페인별 배분 판단 및 실행 결과\n\n1. **테스트 캠페인 B (`c-773640cceee14dbd`)**\n   - **조정 판단**: 높은 성과 및 강한 상승 모멘텀(`momentum` 2.0 ≥ 1.5) 신호를 반영하여 기준선(`suggestedWeight` 0.238) 대비 +0.10 상향된 **weight 0.338**로 결정했습니다.\n   - **실행 결과**: 예산 배분이 성공적으로 처리되었습니다.\n\n2. **조던 신발 (`c-3c2f763527e546f1`)**\n   - **조정 판단**: 긍정적인 모멘텀(`momentum` 2.0 ≥ 1.5) 신호를 반영하여 기준선(`suggestedWeight` 0.200) 대비 +0.10 상향된 **weight 0.300**으로 결정했습니다.\n   - **실행 결과**: 해당 캠페인의 온체인 에스크로가 생성되어 있지 않아 배분이 반영되지 않았습니다.\n\n3. **무기자차 선크림 (`c-924c80c9e1bf4c29`)**\n   - **조정 판단**: 상승 모멘텀(`momentum` 2.0 ≥ 1.5) 신호를 반영하여 기준선(`suggestedWeight` 0.175) 대비 +0.10 상향된 **weight 0.275**로 결정했습니다.\n   - **실행 결과**: 해당 캠페인의 온체인 에스크로가 생성되어 있지 않아 배분이 반영되지 않았습니다.\n\n4. **테스트 캠페인 A (`c-7419b1d05f1d44a0`)**\n   - **조정 판단**: 크리에이터 참여 및 주문 실적이 부족한 표본 부족 신호(참여 크리에이터 < 2)가 적용되어, 기준선(`suggestedWeight` 0.05)에서 -0.15 감산 시 최종 **weight가 0**이 되었습니다.\n   - **실행 결과**: 배분 비율이 0이므로 배분 트랜잭션을 실행하지 않았습니다.\n\n---\n\n### 종합 총평\n이번 라운드에서는 성과와 상승 모멘텀이 명확한 캠페인을 위주로 적극적인 상향 조정을 적용했습니다. 성과 및 에스크로가 준비된 **테스트 캠페인 B**에 성공적으로 예산이 배분되었으며, 에스크로가 미생성 상태인 2개 캠페인은 에스크로 생성 후 다음 라운드에서 재검토될 수 있도록 잔여 예산 풀(Vault)에 보수적으로 남겨두었습니다. 실적이 전무한 캠페인 A는 불필요한 예산 낭비를 방지하도록 제외 처리했습니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 라운드 예산 배분에서는 성과와 상승 모멘텀(momentum >= 1.5)이 확인된 캠페인들에 대해 weight를 상향 조정했습니다. 에스크로가 정상 연결된 '테스트 캠페인 B'에는 성공적으로 예산 배분이 완료되었으나, '조던 신발'과 '무기자차 선크림'은 온체인 에스크로 미생성 상태로 인해 반영되지 않았습니다. 참여 실적이 부진한 '테스트 캠페인 A'는 표본 부족 신호로 인해 weight가 0 이하로 조정되어 배분에서 제외되었습니다. 미집행된 예산은 Vault에 보관되어 다음 라운드 실행 시 재검토될 예정입니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0.338,
+          "amountUsdc": 1.21,
+          "amountKrw": 1694,
+          "reason": "모멘텀 신호(momentum 2.0 >= 1.5)가 확인되어 기준선(0.238) 대비 +0.10 상향 조정하였습니다.",
+          "txSignature": "3MfvVWV3rhbSqtrS3nQ1f4K3tXgcFh1cMoV3gpgFmfXS4c8zJEU7EzqbroxNPgcMi8MActvebgtfnYRgqA6cMzBA",
+          "solscanUrl": "https://solscan.io/tx/3MfvVWV3rhbSqtrS3nQ1f4K3tXgcFh1cMoV3gpgFmfXS4c8zJEU7EzqbroxNPgcMi8MActvebgtfnYRgqA6cMzBA?cluster=devnet"
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 2.36
+    }
+  },
+  {
+    "id": "ddc46075-6d06-4c82-9c42-198e022dc004",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 2.36,
+    "startedAt": "2026-08-16T02:09:14.484Z",
+    "finishedAt": "2026-08-16T02:10:01.188Z",
+    "analyst": {
+      "summary": "조사된 4개 활성 캠페인 중 '테스트 캠페인 B'는 200%의 높은 확정 전환율과 42.39%의 빠른 예산 소진율을 보이며 성과가 가장 우수하여 예산 증액이 시급합니다. '조던 신발'과 '무기자차 선크림'은 취소율 없이 양호한 성과 모멘텀을 유지하고 있으나 예산 소진 속도를 올리기 위한 크리에이터 확대가 권장됩니다. 반면 '테스트 캠페인 A'는 크리에이터 참여 및 주문 실적이 전무하여 캠페인 설정 점검 및 개선 조치가 필요합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 693,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 279.3,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 3.35,
+              "spentUsdc": 1.42
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0083,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.023,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 2,
+            "budgetUsedRate": 0.4239,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 3
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 3,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 2,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "note",
+          "round": 4,
+          "text": "```json\n{\n  \"summary\": \"조사된 4개 활성 캠페인 중 '테스트 캠페인 B'는 200%의 높은 확정 전환율과 42.39%의 빠른 예산 소진율을 보이며 성과가 가장 우수하여 예산 증액이 시급합니다. '조던 신발'과 '무기자차 선크림'은 취소율 없이 안정적인 모멘텀을 유지하고 있으나 예산 소진 속도를 올리기 위한 노력이 필요합니다. 반면 '테스트 캠페인 A'는 크리에이터 참여 및 주문 실적이 전무하여 캠페인 세팅 점검 및 지속적인 모니터링이 요구됩니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"product\": \"테스트 캠페인 B\",\n      \"score\": 95,\n      \"signal\": \"boost\",\n      \"reasoning\": \"확정 전환율이 200%로 매우 높고 예산 소진율도 42.39%로 활발하게 진행 중이며 모멘텀(2.0)도 양호하여 예산 고갈 임박에 따른 증액 우선순위가 매우 높습니다.\"\n    },\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"product\": \"조던 신발\",\n      \"score\": 85,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"확정 전환율 100% 및 긍정적 모멘텀(2.0)을 기록하였으나 예산 소진율(2.3%)이 다소 낮아 크리에이터 추가 확보를 통한 집행 가속이 필요합니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"product\": \"무기자차 선크림\",\n      \"score\": 75,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"총 7건의 주문과 2명의 크리에이터 참여로 안정적인 흐름을 보이고 취소율도 0%이나, 전환율(33.33%)과 예산 소진율(0.83%) 측면에서 개선 여지가 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"product\": \"테스트 캠페인 A\",\n      \"score\": 20,\n      \"signal\": \"watch\",\n      \"reasoning\": \"참여 크리에이터 수 및 확정 주문 발생 실적이 0건으로 활성화가 이루어지지 않아 캠페인 조건 변경 및 모니터링이 필요합니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "조사된 4개 활성 캠페인 중 '테스트 캠페인 B'는 200%의 높은 확정 전환율과 42.39%의 빠른 예산 소진율을 보이며 성과가 가장 우수하여 예산 증액이 시급합니다. '조던 신발'과 '무기자차 선크림'은 취소율 없이 양호한 성과 모멘텀을 유지하고 있으나 예산 소진 속도를 올리기 위한 크리에이터 확대가 권장됩니다. 반면 '테스트 캠페인 A'는 크리에이터 참여 및 주문 실적이 전무하여 캠페인 설정 점검 및 개선 조치가 필요합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 95,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 2,
+                  "budgetUsedRate": 0.4239,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율이 200%로 매우 높고 예산 소진율도 42.39%로 활발하게 진행 중이며 모멘텀(2.0)도 양호하여 예산 고갈 임박에 따른 증액 우선순위가 매우 높습니다."
+              },
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 85,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.023,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100% 및 긍정적 모멘텀(2.0)을 기록하였으나 예산 소진율(2.3%)이 다소 낮아 크리에이터 추가 확보를 통한 집행 가속이 필요합니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 75,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0083,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "총 7건의 주문과 2명의 크리에이터 참여로 안정적인 흐름을 보이고 취소율도 0%이나, 전환율(33.33%)과 예산 소진율(0.83%) 측면에서 개선 여지가 있습니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 20,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 크리에이터 수 및 확정 주문 발생 실적이 0건으로 활성화가 이루어지지 않아 캠페인 조건 변경 및 모니터링이 필요합니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-50a91532",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-16T02:09:47.105Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 2.36,
+              "campaigns": [
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 95,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 2,
+                    "budgetUsedRate": 0.4239,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율이 200%로 매우 높고 예산 소진율도 42.39%로 활발하게 진행 중이며 모멘텀(2.0)도 양호하여 예산 고갈 임박에 따른 증액 우선순위가 매우 높습니다.",
+                  "suggestedWeight": 0.238
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 85,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.023,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100% 및 긍정적 모멘텀(2.0)을 기록하였으나 예산 소진율(2.3%)이 다소 낮아 크리에이터 추가 확보를 통한 집행 가속이 필요합니다.",
+                  "suggestedWeight": 0.213
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 75,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0083,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "총 7건의 주문과 2명의 크리에이터 참여로 안정적인 흐름을 보이고 취소율도 0%이나, 전환율(33.33%)과 예산 소진율(0.83%) 측면에서 개선 여지가 있습니다.",
+                  "suggestedWeight": 0.188
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 20,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 크리에이터 수 및 확정 주문 발생 실적이 0건으로 활성화가 이루어지지 않아 캠페인 조건 변경 및 모니터링이 필요합니다.",
+                  "suggestedWeight": 0.05
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 라운드 예산 배분 검토 결과, 우수한 모멘텀(2.0) 신호를 보인 '테스트 캠페인 B', '조던 신발', '무기자차 선크림' 캠페인에 대해 기준선 대비 +0.10 상향 조정한 weight를 반영하여 배분을 진행했습니다. 이 중 '테스트 캠페인 B'는 에스크로에 정상적으로 탑업이 완료되었으나, '조던 신발'과 '무기자차 선크림'은 온체인 에스크로 미생성 상태로 인해 트랜잭션이 실패하여 처리되지 않았습니다. 실적이 없는 '테스트 캠페인 A'는 표본 부족 감점으로 인해 배분 대상에서 제외되었으며, 미배분 잔액은 예비 예산(Vault)에 보수적으로 유지됩니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-773640cceee14dbd",
+            "reason": "강한 모멘텀(2.0 >= 1.5) 신호 반영으로 기준선(0.238) 대비 +0.10 상향 조정을 적용하였습니다.",
+            "weight": 0.338
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 0.8,
+            "txSignature": "MAiT9yoxXLSGc5qhUN8T9t6RTJLAN9YniGuojV3wYHZRSUKbhtxpYBf9tm48eX5QwSB7e7GiJfDPSkUXiKcNNzz"
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "강한 모멘텀(2.0 >= 1.5) 신호 반영으로 기준선(0.213) 대비 +0.10 상향 조정을 적용하였습니다.",
+            "weight": 0.313,
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-3c2f763527e546f1은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "강한 모멘텀(2.0 >= 1.5) 신호 반영으로 기준선(0.188) 대비 +0.10 상향 조정을 적용하였습니다.",
+            "weight": 0.288,
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-924c80c9e1bf4c29은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 예산 배분 실행 결과 종합 총평입니다.\n\n1. **테스트 캠페인 B (`c-773640cceee14dbd`)**:\n   - 높은 전환율과 강력한 모멘텀(2.0) 신호를 반영하여 기준선(0.238) 대비 +0.10 상향 조정한 weight(0.338)로 성공적으로 예산 증액 배분을 완료했습니다.\n\n2. **조던 신발 (`c-3c2f763527e546f1`) 및 무기자차 선크림 (`c-924c80c9e1bf4c29`)**:\n   - 두 캠페인 모두 양호한 모멘텀(2.0) 신호에 따라 기준선 대비 +0.10 상향 조정한 weight(각각 0.313, 0.288)로 배분을 시도하였으나, 온체인 에스크로 미생성 상태로 인해 반영이 실패하였습니다. 해당 캠페인들의 에스크로 상태 확인 및 조치가 필요합니다.\n\n3. **테스트 캠페인 A (`c-7419b1d05f1d44a0`)**:\n   - 실적 및 참여 크리에이터 부재(표본 부족)로 인해 감점 조정하여 최종 weight가 0 이하로 계산됨에 따라 예산 배분 대상에서 제외하였습니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 라운드 예산 배분 검토 결과, 우수한 모멘텀(2.0) 신호를 보인 '테스트 캠페인 B', '조던 신발', '무기자차 선크림' 캠페인에 대해 기준선 대비 +0.10 상향 조정한 weight를 반영하여 배분을 진행했습니다. 이 중 '테스트 캠페인 B'는 에스크로에 정상적으로 탑업이 완료되었으나, '조던 신발'과 '무기자차 선크림'은 온체인 에스크로 미생성 상태로 인해 트랜잭션이 실패하여 처리되지 않았습니다. 실적이 없는 '테스트 캠페인 A'는 표본 부족 감점으로 인해 배분 대상에서 제외되었으며, 미배분 잔액은 예비 예산(Vault)에 보수적으로 유지됩니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0.338,
+          "amountUsdc": 0.8,
+          "amountKrw": 1120,
+          "reason": "강한 모멘텀(2.0 >= 1.5) 신호 반영으로 기준선(0.238) 대비 +0.10 상향 조정을 적용하였습니다.",
+          "txSignature": "MAiT9yoxXLSGc5qhUN8T9t6RTJLAN9YniGuojV3wYHZRSUKbhtxpYBf9tm48eX5QwSB7e7GiJfDPSkUXiKcNNzz",
+          "solscanUrl": "https://solscan.io/tx/MAiT9yoxXLSGc5qhUN8T9t6RTJLAN9YniGuojV3wYHZRSUKbhtxpYBf9tm48eX5QwSB7e7GiJfDPSkUXiKcNNzz?cluster=devnet"
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 1.56
+    }
+  },
+  {
+    "id": "96bd66d7-ee10-4e10-b865-171c0ab63686",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 1.56,
+    "startedAt": "2026-08-16T02:36:23.366Z",
+    "finishedAt": "2026-08-16T02:37:02.665Z",
+    "analyst": {
+      "summary": "광고주의 활성 캠페인 4건을 조사한 결과, 전반적으로 취소율 0%로 안정적인 운영 성과를 보이고 있습니다. 예산소진율과 전환율이 모두 높은 '테스트 캠페인 B'를 필두로 '조던 신발'과 '무기자차 선크림' 캠페인이 우수한 성과를 내고 있어 추가 지원이 유효합니다. 반면 전환과 크리에이터 참여가 없는 '테스트 캠페인 A'는 활성화를 위한 개선 조치가 필요합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 693,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 279.3,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 4.15,
+              "spentUsdc": 1.42
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0083,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.023,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 2,
+            "budgetUsedRate": 0.3422,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 3
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 2,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"summary\": \"광고주의 활성 캠페인 4건을 전체 조사한 결과, 전반적으로 취소율 0%의 안정적인 운영 상태를 보이고 있습니다. 특히 '테스트 캠페인 B'와 '조던 신발', '무기자차 선크림' 캠페인은 높은 전환율과 최근 상승 모멘텀을 나타내어 우수한 성과를 거두고 있으며, 예산 소진율과 전환율이 가장 높은 '테스트 캠페인 B'의 집중 관리가 유효합니다. 반면 '테스트 캠페인 A'는 크리에이터 참여 및 성과가 없어 크리에이터 매칭 등의 개선 작업이 요구됩니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"productName\": \"테스트 캠페인 B\",\n      \"score\": 92,\n      \"signal\": \"boost\",\n      \"reasoning\": \"확정 전환율 200%로 가장 우수한 성과를 보이며, 예산 소진율(34.22%)도 상대적으로 높고 최근 모멘텀이 뛰어나 우선적인 예산 확대가 권장됩니다.\"\n    },\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"productName\": \"조던 신발\",\n      \"score\": 85,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"확정 전환율 100%와 긍정적인 모멘텀을 기록하고 있으며, 취소율 0%로 안정적인 운영 추세를 지속하고 있습니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"productName\": \"무기자차 선크림\",\n      \"score\": 78,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"2명의 크리에이터 참여와 총 7건의 주문 발생으로 전환율 33.33% 및 양호한 모멘텀을 유지 중이며, 예산 소진 여력이 충분합니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"productName\": \"테스트 캠페인 A\",\n      \"score\": 25,\n      \"signal\": \"watch\",\n      \"reasoning\": \"참여 크리에이터가 0명이며 전환 및 예산 소진이 전혀 발생하지 않고 있어 캠페인 조건 재설정이나 크리에이터 섭외 등의 활성화 노력이 필요합니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "광고주의 활성 캠페인 4건을 조사한 결과, 전반적으로 취소율 0%로 안정적인 운영 성과를 보이고 있습니다. 예산소진율과 전환율이 모두 높은 '테스트 캠페인 B'를 필두로 '조던 신발'과 '무기자차 선크림' 캠페인이 우수한 성과를 내고 있어 추가 지원이 유효합니다. 반면 전환과 크리에이터 참여가 없는 '테스트 캠페인 A'는 활성화를 위한 개선 조치가 필요합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 92,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 2,
+                  "budgetUsedRate": 0.3422,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "전환율 200%와 예산소진율 34.22%로 가장 우수한 성과 및 빠른 예산 소진 속도를 보이고 있어 예산 확대 및 집중 관리가 권장됩니다."
+              },
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 85,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.023,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "전환율 100%와 긍정적인 모멘텀을 기록하고 있으며 취소율 0%로 매우 안정적인 운영 상태를 유지하고 있습니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 78,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0083,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "전환율 33.33%와 총 7건의 주문을 기록하고 있으며 2명의 크리에이터가 참여하여 긍정적인 상승 모멘텀을 유지하고 있습니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 25,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 크리에이터가 0명이고 전환 및 예산 소진이 발생하지 않아 캠페인 구조 점검 및 크리에이터 매칭 노력이 필요합니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-24c0ea0c",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-16T02:36:47.455Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 1.56,
+              "campaigns": [
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 92,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 2,
+                    "budgetUsedRate": 0.3422,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "전환율 200%와 예산소진율 34.22%로 가장 우수한 성과 및 빠른 예산 소진 속도를 보이고 있어 예산 확대 및 집중 관리가 권장됩니다.",
+                  "suggestedWeight": 0.23
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 85,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.023,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "전환율 100%와 긍정적인 모멘텀을 기록하고 있으며 취소율 0%로 매우 안정적인 운영 상태를 유지하고 있습니다.",
+                  "suggestedWeight": 0.212
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 78,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0083,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "전환율 33.33%와 총 7건의 주문을 기록하고 있으며 2명의 크리에이터가 참여하여 긍정적인 상승 모멘텀을 유지하고 있습니다.",
+                  "suggestedWeight": 0.195
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 25,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 크리에이터가 0명이고 전환 및 예산 소진이 발생하지 않아 캠페인 구조 점검 및 크리에이터 매칭 노력이 필요합니다.",
+                  "suggestedWeight": 0.063
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "테스트 캠페인 B는 강한 모멘텀 신호에 따라 가중치를 상향 조정하여 성공적으로 예산 배분을 완료했습니다. 조던 신발과 무기자차 선크림 캠페인은 모멘텀 상향 조정을 적용했으나 온체인 에스크로 미생성 상태로 배분이 실행되지 않았고, 테스트 캠페인 A는 크리에이터 참여 부족 등 데이터 미비로 배분 대상에서 제외되었습니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "강한 상승 모멘텀(2.0 >= 1.5) 반영하여 기준선 대비 +0.10 상향 조정 (0.23 -> 0.33)",
+            "campaignId": "c-773640cceee14dbd",
+            "weight": 0.33
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 0.51,
+            "txSignature": "2bkqPmc29Txyygmei3UE94xe9yJWqcXtqtBN3aDZu1QF1KzBnmtntJ3gEDbjm1sTDHS6kMjhq1wo66FsYADuhmJw"
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "weight": 0.312,
+            "reason": "강한 상승 모멘텀(2.0 >= 1.5) 반영하여 기준선 대비 +0.10 상향 조정 (0.212 -> 0.312)",
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-3c2f763527e546f1은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "weight": 0.295,
+            "campaignId": "c-924c80c9e1bf4c29",
+            "reason": "강한 상승 모멘텀(2.0 >= 1.5) 반영하여 기준선 대비 +0.10 상향 조정 (0.195 -> 0.295)"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-924c80c9e1bf4c29은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 예산 배분 라운드 검토 종합 결과입니다.\n\n- **테스트 캠페인 B (`c-773640cceee14dbd`)**: 강한 상승 모멘텀(2.0)을 반영하여 기준선(0.23) 대비 +0.10 조정한 최종 비율(0.33)로 예산 배분이 성공적으로 완료되었습니다.\n- **조던 신발 (`c-3c2f763527e546f1`) 및 무기자차 선크림 (`c-924c80c9e1bf4c29`)**: 긍정적인 상승 모멘텀을 바탕으로 가중치를 확대 반영하여 배분을 시도하였으나, 온체인 에스크로 미생성 상태로 인해 반영되지 않았습니다.\n- **테스트 캠페인 A (`c-7419b1d05f1d44a0`)**: 참여 크리에이터 0명 및 성과 데이터 미비 등 표본 부족 신호에 따라 배분 비율을 0으로 조정하여 이번 탑업 대상에서 제외했습니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "테스트 캠페인 B는 강한 모멘텀 신호에 따라 가중치를 상향 조정하여 성공적으로 예산 배분을 완료했습니다. 조던 신발과 무기자차 선크림 캠페인은 모멘텀 상향 조정을 적용했으나 온체인 에스크로 미생성 상태로 배분이 실행되지 않았고, 테스트 캠페인 A는 크리에이터 참여 부족 등 데이터 미비로 배분 대상에서 제외되었습니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0.33,
+          "amountUsdc": 0.51,
+          "amountKrw": 714,
+          "reason": "강한 상승 모멘텀(2.0 >= 1.5) 반영하여 기준선 대비 +0.10 상향 조정 (0.23 -> 0.33)",
+          "txSignature": "2bkqPmc29Txyygmei3UE94xe9yJWqcXtqtBN3aDZu1QF1KzBnmtntJ3gEDbjm1sTDHS6kMjhq1wo66FsYADuhmJw",
+          "solscanUrl": "https://solscan.io/tx/2bkqPmc29Txyygmei3UE94xe9yJWqcXtqtBN3aDZu1QF1KzBnmtntJ3gEDbjm1sTDHS6kMjhq1wo66FsYADuhmJw?cluster=devnet"
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 1.05
+    }
+  },
+  {
+    "id": "2500f3b7-6760-413a-bf40-36030ff42ca3",
+    "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+    "poolUsdc": 1.05,
+    "startedAt": "2026-08-16T02:42:11.108Z",
+    "finishedAt": "2026-08-16T02:42:50.211Z",
+    "analyst": {
+      "summary": "광고주의 4개 활성 캠페인을 분석한 결과, 모든 캠페인의 취소율이 0%로 안정적인 상태를 유지하고 있습니다. '테스트 캠페인 B'와 '조던 신발' 캠페인은 높은 확정 전환율과 긍정적 모멘텀을 나타내어 강한 성과를 보이고 있는 반면, 실적이 전무한 '테스트 캠페인 A'는 제외 대상으로 평가되었습니다. 성과가 뛰어난 캠페인 위주로 예산과 크리에이터 자원을 집중 배분하는 스케일업 전략을 권장합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56"
+          },
+          "result": [
+            {
+              "id": "c-924c80c9e1bf4c29",
+              "product": "무기자차 선크림",
+              "budgetUsdc": 693,
+              "spentUsdc": 5.72
+            },
+            {
+              "id": "c-3c2f763527e546f1",
+              "product": "조던 신발",
+              "budgetUsdc": 279.3,
+              "spentUsdc": 6.43
+            },
+            {
+              "id": "c-7419b1d05f1d44a0",
+              "product": "테스트 캠페인 A",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-773640cceee14dbd",
+              "product": "테스트 캠페인 B",
+              "budgetUsdc": 4.66,
+              "spentUsdc": 1.42
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "conversionRate": 0.3333,
+            "budgetUsedRate": 0.0083,
+            "cancelRate": 0,
+            "creatorCount": 2,
+            "totalOrders": 7
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29"
+          },
+          "result": {
+            "recentCount": 3,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "conversionRate": 1,
+            "budgetUsedRate": 0.023,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "recentCount": 1,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 0,
+            "totalOrders": 0
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-7419b1d05f1d44a0"
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "conversionRate": 2,
+            "budgetUsedRate": 0.3047,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 3
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "recentCount": 2,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"summary\": \"전체 4개 활성 캠페인 중 취소율은 모두 0%로 안정적인 상태를 유지하고 있으며, 특히 '테스트 캠페인 B'와 '조던 신발' 캠페인이 높은 확정 전환율과 긍정적 모멘텀을 기록하고 있습니다. 반면 '테스트 캠페인 A'는 크리에이터 참여 및 전환 실적이 전혀 없어 제약 요소로 작용하고 있습니다. 성과가 우수한 캠페인 위주로 예산 확충과 크리에이터 참여를 확장하는 스케일업 전략이 권장됩니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-773640cceee14dbd\",\n      \"product\": \"테스트 캠페인 B\",\n      \"score\": 92,\n      \"signal\": \"scale_up\",\n      \"reasoning\": \"확정 전환율이 매우 높고(200%), 예산소진율(30.47%)이 전체 캠페인 중 가장 높아 예산 고갈 임박에 따른 즉시 스케일업이 필요합니다.\"\n    },\n    {\n      \"campaignId\": \"c-3c2f763527e546f1\",\n      \"product\": \"조던 신발\",\n      \"score\": 85,\n      \"signal\": \"scale_up\",\n      \"reasoning\": \"확정 전환율 100% 및 최근 긍정적 모멘텀을 보이고 있으나, 참여 크리에이터가 1명으로 적어 추가 크리에이터 유입 및 스케일업을 추천합니다.\"\n    },\n    {\n      \"campaignId\": \"c-924c80c9e1bf4c29\",\n      \"product\": \"무기자차 선크림\",\n      \"score\": 72,\n      \"signal\": \"maintain\",\n      \"reasoning\": \"확정 전환율 33.33%와 최근 상승 모멘텀(3건)을 보유하고 있으나 예산소진율(0.83%)이 낮아 성과 추적 및 현상 유지가 적절합니다.\"\n    },\n    {\n      \"campaignId\": \"c-7419b1d05f1d44a0\",\n      \"product\": \"테스트 캠페인 A\",\n      \"score\": 15,\n      \"signal\": \"exclude\",\n      \"reasoning\": \"참여 크리에이터 및 주문 건수가 0건으로 전환율과 예산소진율이 모두 0%에 머물러 성과 미집행 상태입니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+            "summary": "광고주의 4개 활성 캠페인을 분석한 결과, 모든 캠페인의 취소율이 0%로 안정적인 상태를 유지하고 있습니다. '테스트 캠페인 B'와 '조던 신발' 캠페인은 높은 확정 전환율과 긍정적 모멘텀을 나타내어 강한 성과를 보이고 있는 반면, 실적이 전무한 '테스트 캠페인 A'는 제외 대상으로 평가되었습니다. 성과가 뛰어난 캠페인 위주로 예산과 크리에이터 자원을 집중 배분하는 스케일업 전략을 권장합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-773640cceee14dbd",
+                "product": "테스트 캠페인 B",
+                "performanceScore": 92,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 2,
+                  "budgetUsedRate": 0.3047,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 200% 및 예산소진율 30.47%로 최고 성과를 보이고 있어 예산 고갈 임박에 따른 스케일업이 필요합니다."
+              },
+              {
+                "campaignId": "c-3c2f763527e546f1",
+                "product": "조던 신발",
+                "performanceScore": 85,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 1,
+                  "budgetUsedRate": 0.023,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 100%와 상승 모멘텀을 기록하여 성과 우수 캠페인으로 분류되나, 예산소진율(2.3%) 개선이 필요합니다."
+              },
+              {
+                "campaignId": "c-924c80c9e1bf4c29",
+                "product": "무기자차 선크림",
+                "performanceScore": 72,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0.3333,
+                  "budgetUsedRate": 0.0083,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율 33.33% 및 모멘텀은 양호하나, 예산소진율이 0.83%로 매우 낮아 활성화 속도가 더딥니다."
+              },
+              {
+                "campaignId": "c-7419b1d05f1d44a0",
+                "product": "테스트 캠페인 A",
+                "performanceScore": 15,
+                "signal": "exclude",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "참여 크리에이터 및 주문 건수가 0건으로 전환율과 예산소진율 모두 0%를 기록하여 실효성이 없습니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-2e77c331",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-16T02:42:35.114Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "5822aca7-e15c-4ada-93cc-bbaf0912dc56",
+              "poolUsdc": 1.05,
+              "campaigns": [
+                {
+                  "campaignId": "c-773640cceee14dbd",
+                  "product": "테스트 캠페인 B",
+                  "performanceScore": 92,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 2,
+                    "budgetUsedRate": 0.3047,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 200% 및 예산소진율 30.47%로 최고 성과를 보이고 있어 예산 고갈 임박에 따른 스케일업이 필요합니다.",
+                  "suggestedWeight": 0.307
+                },
+                {
+                  "campaignId": "c-3c2f763527e546f1",
+                  "product": "조던 신발",
+                  "performanceScore": 85,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 1,
+                    "budgetUsedRate": 0.023,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 100%와 상승 모멘텀을 기록하여 성과 우수 캠페인으로 분류되나, 예산소진율(2.3%) 개선이 필요합니다.",
+                  "suggestedWeight": 0.283
+                },
+                {
+                  "campaignId": "c-924c80c9e1bf4c29",
+                  "product": "무기자차 선크림",
+                  "performanceScore": 72,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0.3333,
+                    "budgetUsedRate": 0.0083,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율 33.33% 및 모멘텀은 양호하나, 예산소진율이 0.83%로 매우 낮아 활성화 속도가 더딥니다.",
+                  "suggestedWeight": 0.24
+                },
+                {
+                  "campaignId": "c-7419b1d05f1d44a0",
+                  "product": "테스트 캠페인 A",
+                  "performanceScore": 15,
+                  "signal": "exclude",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "참여 크리에이터 및 주문 건수가 0건으로 전환율과 예산소진율 모두 0%를 기록하여 실효성이 없습니다.",
+                  "suggestedWeight": 0
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 예산 배분 실행에서는 모멘텀 지표가 우수한 캠페인(테스트 캠페인 B, 조던 신발, 무기자차 선크림)에 대해 각각 +0.10의 가중치 상향 조정을 적용하였으며, 성과 미달로 exclude 처리된 테스트 캠페인 A는 제외하였습니다. 적용 결과 테스트 캠페인 B는 정상적으로 온체인 배분이 완료되었으나, 조던 신발 및 무기자차 선크림 캠페인은 온체인 에스크로 미생성으로 배분에 실패하여 남은 예산은 다음 라운드로 이월 검토됩니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "높은 상승 모멘텀(momentum=2.0 >= 1.5) 신호를 반영하여 기준선(0.307) 대비 +0.10 상향 조정",
+            "weight": 0.407,
+            "campaignId": "c-773640cceee14dbd"
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 0.43,
+            "txSignature": "2AxWSFMA5GqsvomboJHCNAz3fVXjjKpM5KbzNWknPL9iuwnmQMozfWKSTQyieSsLMttEDXc3qoqSCYqoKVAL9qFJ"
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "reason": "높은 상승 모멘텀(momentum=2.0 >= 1.5) 신호를 반영하여 기준선(0.283) 대비 +0.10 상향 조정",
+            "weight": 0.383,
+            "campaignId": "c-3c2f763527e546f1"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-3c2f763527e546f1은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-924c80c9e1bf4c29",
+            "weight": 0.34,
+            "reason": "상승 모멘텀(momentum=2.0 >= 1.5) 신호를 반영하여 기준선(0.24) 대비 +0.10 상향 조정"
+          },
+          "result": {
+            "success": false,
+            "error": "온체인 배분 실패: 캠페인 c-924c80c9e1bf4c29은(는) 온체인 에스크로가 없어 배분할 수 없습니다."
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 라운드 캠페인 예산 배분 실행 결과 총평입니다.\n\n### 1. 배분 결과 요약\n* **테스트 캠페인 B (`c-773640cceee14dbd`)**\n  * **결정 Weight:** `0.407` (기준선 `0.307` 대비 `+0.10` 상향)\n  * **조정 이유:** 강한 상승 모멘텀(`momentum = 2.0 >= 1.5`) 신호를 반영하여 효율을 극대화하고자 상향 조정했습니다.\n  * **상태:** 배분 반영 완료\n\n* **조던 신발 (`c-3c2f763527e546f1`)**\n  * **결정 Weight:** `0.383` (기준선 `0.283` 대비 `+0.10` 상향)\n  * **조정 이유:** 높은 확정 전환율과 상승 모멘텀(`momentum = 2.0`) 신호를 고려하여 상향 결정했습니다.\n  * **상태:** 실패 (온체인 에스크로가 생성되어 있지 않아 반영 불가)\n\n* **무기자차 선크림 (`c-924c80c9e1bf4c29`)**\n  * **결정 Weight:** `0.340` (기준선 `0.240` 대비 `+0.10` 상향)\n  * **조정 이유:** 긍정적인 상승 모멘텀(`momentum = 2.0`) 신호를 고려하여 상향 결정했습니다.\n  * **상태:** 실패 (온체인 에스크로가 생성되어 있지 않아 반영 불가)\n\n* **테스트 캠페인 A (`c-7419b1d05f1d44a0`)**\n  * **결정 Weight:** `0`\n  * **조정 이유:** `exclude` 신호에 따라 예산 배분 대상에서 제외되었습니다.\n\n---\n\n### 2. 종합 평가\n성과 지표 분석 결과를 바탕으로 모멘텀이 뛰어난 캠페인들에 상향 조정된 가중치를 부여하였습니다. 온체인 에스크로 미생성으로 배분이 실행되지 않은 캠페인들에 대해서는 에스크로 계정 생성 상태 확인 후 다음 라운드에서 재검토될 예정입니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 예산 배분 실행에서는 모멘텀 지표가 우수한 캠페인(테스트 캠페인 B, 조던 신발, 무기자차 선크림)에 대해 각각 +0.10의 가중치 상향 조정을 적용하였으며, 성과 미달로 exclude 처리된 테스트 캠페인 A는 제외하였습니다. 적용 결과 테스트 캠페인 B는 정상적으로 온체인 배분이 완료되었으나, 조던 신발 및 무기자차 선크림 캠페인은 온체인 에스크로 미생성으로 배분에 실패하여 남은 예산은 다음 라운드로 이월 검토됩니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-773640cceee14dbd",
+          "product": "테스트 캠페인 B",
+          "weight": 0.407,
+          "amountUsdc": 0.43,
+          "amountKrw": 602,
+          "reason": "높은 상승 모멘텀(momentum=2.0 >= 1.5) 신호를 반영하여 기준선(0.307) 대비 +0.10 상향 조정",
+          "txSignature": "2AxWSFMA5GqsvomboJHCNAz3fVXjjKpM5KbzNWknPL9iuwnmQMozfWKSTQyieSsLMttEDXc3qoqSCYqoKVAL9qFJ",
+          "solscanUrl": "https://solscan.io/tx/2AxWSFMA5GqsvomboJHCNAz3fVXjjKpM5KbzNWknPL9iuwnmQMozfWKSTQyieSsLMttEDXc3qoqSCYqoKVAL9qFJ?cluster=devnet"
+        },
+        {
+          "campaignId": "c-3c2f763527e546f1",
+          "product": "조던 신발",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-924c80c9e1bf4c29",
+          "product": "무기자차 선크림",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        },
+        {
+          "campaignId": "c-7419b1d05f1d44a0",
+          "product": "테스트 캠페인 A",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "참여 크리에이터 및 주문 건수가 0건으로 전환율과 예산소진율 모두 0%를 기록하여 실효성이 없습니다. — 배분 대상에서 제외",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 0.62
+    }
+  },
+  {
+    "id": "90eb5d64-b59a-4e79-a202-59e47560d766",
+    "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66",
+    "poolUsdc": 2.142857,
+    "startedAt": "2026-08-16T08:27:24.561Z",
+    "finishedAt": "2026-08-16T08:28:05.574Z",
+    "analyst": {
+      "summary": "광고주의 활성 캠페인 2건 조사 결과, '테스트 캠페인2'는 높은 확정 전환율과 뚜렷한 상승 모멘텀을 기록하여 긍정적인 성과를 보이고 있습니다. 반면 '테스트 캠페인 1'은 예산 소진과 전환 발생이 전혀 없어 성과 개선을 위한 마케팅 전략 변경이 필요합니다. 전체적으로 성과 우수 캠페인에 예산과 마케팅 자원을 집중하는 가속화 전략을 권장합니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "list_active_campaigns",
+          "args": {
+            "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66"
+          },
+          "result": [
+            {
+              "id": "c-503213eb81294c12",
+              "product": "테스트 캠페인 1",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0
+            },
+            {
+              "id": "c-d868b36aaf204d75",
+              "product": "테스트 캠페인2",
+              "budgetUsdc": 3.5714285714285716,
+              "spentUsdc": 0.58
+            }
+          ]
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-503213eb81294c12"
+          },
+          "result": {
+            "conversionRate": 0,
+            "budgetUsedRate": 0,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-503213eb81294c12",
+            "days": 7
+          },
+          "result": {
+            "recentCount": 0,
+            "previousCount": 0,
+            "momentumRatio": 1
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_metrics",
+          "args": {
+            "campaignId": "c-d868b36aaf204d75"
+          },
+          "result": {
+            "conversionRate": 2.5,
+            "budgetUsedRate": 0.1624,
+            "cancelRate": 0,
+            "creatorCount": 1,
+            "totalOrders": 6
+          }
+        },
+        {
+          "type": "tool_call",
+          "round": 2,
+          "name": "get_campaign_momentum",
+          "args": {
+            "campaignId": "c-d868b36aaf204d75",
+            "days": 7
+          },
+          "result": {
+            "recentCount": 5,
+            "previousCount": 0,
+            "momentumRatio": 2
+          }
+        },
+        {
+          "type": "note",
+          "round": 3,
+          "text": "```json\n{\n  \"summary\": \"해당 광고주의 활성 캠페인 2건을 조사한 결과, '테스트 캠페인2'는 우수한 확정 전환율과 최근 7일간 5건의 모멘텀 성장을 기록하여 주력 캠페인으로서 뛰어난 성과를 보이고 있습니다. 반면 '테스트 캠페인 1'은 전환 발생과 예산 소진이 없어 운용 전략 재검토가 필요한 상태입니다. 활성 캠페인 간의 성과 양극화가 명확하므로 고성과 캠페인에 예산과 마케팅 리소스를 집중하는 운영 전략을 권장합니다.\",\n  \"campaigns\": [\n    {\n      \"campaignId\": \"c-d868b36aaf204d75\",\n      \"product\": \"테스트 캠페인2\",\n      \"score\": 85,\n      \"signal\": \"priority\",\n      \"metrics\": {\n        \"conversionRate\": 2.5,\n        \"budgetUsedRate\": 0.1624,\n        \"cancelRate\": 0,\n        \"creatorCount\": 1,\n        \"momentum\": {\n          \"recentCount\": 5,\n          \"previousCount\": 0,\n          \"momentumRatio\": 2\n        }\n      },\n      \"reasoning\": \"높은 확정 전환율(2.5)과 최근 7일 간 5건의 주문 모멘텀을 형성하고 있으며, 예산 소진율 16.24%, 취소율 0%로 안정적이고 활발한 성과를 보여줍니다.\"\n    },\n    {\n      \"campaignId\": \"c-503213eb81294c12\",\n      \"product\": \"테스트 캠페인 1\",\n      \"score\": 20,\n      \"signal\": \"maintain\",\n      \"metrics\": {\n        \"conversionRate\": 0,\n        \"budgetUsedRate\": 0,\n        \"cancelRate\": 0,\n        \"creatorCount\": 1,\n        \"momentum\": {\n          \"recentCount\": 0,\n          \"previousCount\": 0,\n          \"momentumRatio\": 1\n        }\n      },\n      \"reasoning\": \"확정 전환율 및 예산 소진율이 0%이며 최근 모멘텀 신호도 발생하지 않아 현재 성과가 부진한 상태입니다.\"\n    }\n  ]\n}\n```"
+        },
+        {
+          "type": "final",
+          "output": {
+            "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66",
+            "summary": "광고주의 활성 캠페인 2건 조사 결과, '테스트 캠페인2'는 높은 확정 전환율과 뚜렷한 상승 모멘텀을 기록하여 긍정적인 성과를 보이고 있습니다. 반면 '테스트 캠페인 1'은 예산 소진과 전환 발생이 전혀 없어 성과 개선을 위한 마케팅 전략 변경이 필요합니다. 전체적으로 성과 우수 캠페인에 예산과 마케팅 자원을 집중하는 가속화 전략을 권장합니다.",
+            "campaigns": [
+              {
+                "campaignId": "c-d868b36aaf204d75",
+                "product": "테스트 캠페인2",
+                "performanceScore": 85,
+                "signal": "strong",
+                "metrics": {
+                  "conversionRate": 2.5,
+                  "budgetUsedRate": 0.1624,
+                  "momentum": 2,
+                  "cancelRate": 0
+                },
+                "reasoning": "높은 확정 전환율(2.5)과 최근 7일간 5건의 성과 모멘텀(비율 2)을 보여주고 있으며 예산 소진율 16.24%, 취소율 0%로 우수한 효율을 나타냅니다."
+              },
+              {
+                "campaignId": "c-503213eb81294c12",
+                "product": "테스트 캠페인 1",
+                "performanceScore": 20,
+                "signal": "weak",
+                "metrics": {
+                  "conversionRate": 0,
+                  "budgetUsedRate": 0,
+                  "momentum": 1,
+                  "cancelRate": 0
+                },
+                "reasoning": "확정 전환율과 예산 소진율이 모두 0%로 실제 성과 창출이 지연되고 있으며 모멘텀 상승 신호도 발생하지 않았습니다."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "a2aMessage": {
+      "taskId": "a2a-8a87ac6a",
+      "from": "linko-campaign-analyst",
+      "to": "linko-budget-allocator",
+      "createdAt": "2026-08-16T08:27:46.264Z",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "data",
+            "data": {
+              "advertiserId": "2523a627-f66f-4ce8-9193-0c361b3a8e66",
+              "advertiserWallet": "F8GGhyHcgpxrRWttKriaNyoWMpanwv57m4VCFAZQo7Vp",
+              "poolUsdc": 2.142857,
+              "campaigns": [
+                {
+                  "campaignId": "c-d868b36aaf204d75",
+                  "product": "테스트 캠페인2",
+                  "performanceScore": 85,
+                  "signal": "strong",
+                  "metrics": {
+                    "conversionRate": 2.5,
+                    "budgetUsedRate": 0.1624,
+                    "momentum": 2,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "높은 확정 전환율(2.5)과 최근 7일간 5건의 성과 모멘텀(비율 2)을 보여주고 있으며 예산 소진율 16.24%, 취소율 0%로 우수한 효율을 나타냅니다.",
+                  "suggestedWeight": 0.425
+                },
+                {
+                  "campaignId": "c-503213eb81294c12",
+                  "product": "테스트 캠페인 1",
+                  "performanceScore": 20,
+                  "signal": "weak",
+                  "metrics": {
+                    "conversionRate": 0,
+                    "budgetUsedRate": 0,
+                    "momentum": 1,
+                    "cancelRate": 0
+                  },
+                  "reasoning": "확정 전환율과 예산 소진율이 모두 0%로 실제 성과 창출이 지연되고 있으며 모멘텀 상승 신호도 발생하지 않았습니다.",
+                  "suggestedWeight": 0.1
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "allocator": {
+      "summary": "이번 라운드 예산 배분 검토 결과, 모멘텀 지수(2.0)가 우수한 '테스트 캠페인2'는 상향 신호를 반영하되 단일 캠페인 최대 가중치 상한선(0.50) 규정에 맞춰 가중치 0.50으로 탑업을 완료했습니다. 반면 전환율이 0%이고 표본이 부족한 '테스트 캠페인 1'은 감점(-0.10)을 적용해 가중치 0.00으로 탑업 대상에서 제외했으며, 미배분 예산은 다음 검토를 위해 Vault에 유지했습니다.",
+      "usedFallback": false,
+      "transcript": [
+        {
+          "type": "tool_call",
+          "round": 1,
+          "name": "apply_topup",
+          "args": {
+            "campaignId": "c-d868b36aaf204d75",
+            "reason": "momentum이 2.0(>= 1.5)으로 강한 모멘텀 신호가 발생하여 가중치 상향(+0.10) 대상입니다. 단, 단일 캠페인 최대 가중치 상한선(0.50) 규정에 따라 최종 가중치는 0.50으로 반영합니다.",
+            "weight": 0.5
+          },
+          "result": {
+            "success": true,
+            "amountUsdc": 1.07,
+            "txSignature": "4gjVsTPHs2doW8wyBWGQtoTwTXrArb5rYpVyeFZPDWXU8S6m3Dt9akNn6zg5y779M7uCYtRwtrkSt1FxKWd6Rm9q"
+          }
+        },
+        {
+          "type": "note",
+          "round": 2,
+          "text": "이번 라운드 예산 배분 검토 결과 총평입니다.\n\n1. **테스트 캠페인2 (`c-d868b36aaf204d75`)**:\n   - 모멘텀 지수 2.0(>= 1.5)으로 최근 성과 추세가 매우 우수하여 가중치 상향 신호(+0.10)를 적용했습니다. \n   - 다만, 단일 캠페인 최대 가중치 제한 규칙(0.50)에 따라 최종 배분 가중치는 **0.50**으로 결정 및 반영 완료되었습니다.\n\n2. **테스트 캠페인 1 (`c-503213eb81294c12`)**:\n   - 전환율 0% 및 예산 소진율 0%로 성과 신호가 미미하고 표본 수 부족(totalOrders < 5) 신호가 확인되어 보수적 가중치 감점(-0.10)을 적용했습니다. \n   - 최종 가중치가 **0.00**으로 산정됨에 따라 추가 예산 탑업을 진행하지 않고 잔여 예산은 다음 검토를 위해 Vault에 보관합니다."
+        },
+        {
+          "type": "final",
+          "output": {
+            "summary": "이번 라운드 예산 배분 검토 결과, 모멘텀 지수(2.0)가 우수한 '테스트 캠페인2'는 상향 신호를 반영하되 단일 캠페인 최대 가중치 상한선(0.50) 규정에 맞춰 가중치 0.50으로 탑업을 완료했습니다. 반면 전환율이 0%이고 표본이 부족한 '테스트 캠페인 1'은 감점(-0.10)을 적용해 가중치 0.00으로 탑업 대상에서 제외했으며, 미배분 예산은 다음 검토를 위해 Vault에 유지했습니다."
+          }
+        }
+      ],
+      "allocations": [
+        {
+          "campaignId": "c-d868b36aaf204d75",
+          "product": "테스트 캠페인2",
+          "weight": 0.5,
+          "amountUsdc": 1.07,
+          "amountKrw": 1498,
+          "reason": "momentum이 2.0(>= 1.5)으로 강한 모멘텀 신호가 발생하여 가중치 상향(+0.10) 대상입니다. 단, 단일 캠페인 최대 가중치 상한선(0.50) 규정에 따라 최종 가중치는 0.50으로 반영합니다.",
+          "txSignature": "4gjVsTPHs2doW8wyBWGQtoTwTXrArb5rYpVyeFZPDWXU8S6m3Dt9akNn6zg5y779M7uCYtRwtrkSt1FxKWd6Rm9q",
+          "solscanUrl": "https://solscan.io/tx/4gjVsTPHs2doW8wyBWGQtoTwTXrArb5rYpVyeFZPDWXU8S6m3Dt9akNn6zg5y779M7uCYtRwtrkSt1FxKWd6Rm9q?cluster=devnet"
+        },
+        {
+          "campaignId": "c-503213eb81294c12",
+          "product": "테스트 캠페인 1",
+          "weight": 0,
+          "amountUsdc": 0,
+          "amountKrw": 0,
+          "reason": "배분 대상에서 제외됨",
+          "txSignature": null
+        }
+      ],
+      "unallocatedUsdc": 1.07
+    }
+  }
+]

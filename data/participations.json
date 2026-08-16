@@ -110,5 +110,29 @@
     "referralCode": "크리에이터28YF-조던신발",
     "clicks": 1,
     "joinedAt": "2026-08-12T10:08:15.746Z"
+  },
+  {
+    "id": "6dcdd8cf-3dd9-4fa9-994b-ecf3c429e89d",
+    "promoterId": "3ce9d945-63e1-4088-84b5-a910ee9ec21a",
+    "campaignId": "c-773640cceee14dbd",
+    "referralCode": "크리에이터28YF-테스트캠페인B",
+    "clicks": 1,
+    "joinedAt": "2026-08-15T14:02:21.076Z"
+  },
+  {
+    "id": "f2ebd0d0-adc2-4542-8324-415dff92cae7",
+    "promoterId": "3ce9d945-63e1-4088-84b5-a910ee9ec21a",
+    "campaignId": "c-503213eb81294c12",
+    "referralCode": "크리에이터28YF-테스트캠페인1",
+    "clicks": 1,
+    "joinedAt": "2026-08-16T08:08:16.060Z"
+  },
+  {
+    "id": "a556ce05-02ca-42a7-ba8c-578882549649",
+    "promoterId": "3ce9d945-63e1-4088-84b5-a910ee9ec21a",
+    "campaignId": "c-d868b36aaf204d75",
+    "referralCode": "크리에이터28YF-테스트캠페인2",
+    "clicks": 2,
+    "joinedAt": "2026-08-16T08:08:47.939Z"
   }
 ]

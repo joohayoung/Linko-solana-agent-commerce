@@ -2,6 +2,7 @@ let krwPerUsdc = 1400;
 let currentAdvertiserId = null;
 let currentAdvertiserWallet = null;
 let budgetExists = false;
+let lastSolscanUrl = null;
 
 api("/api/config")
   .then((cfg) => {
@@ -29,6 +30,7 @@ async function loadStatus(advertiserId, walletAddress) {
           <div class="stat-card"><div class="label">Vault 잔액</div><div class="value small">${won(Math.round(info.vaultBalanceUsdc * krwPerUsdc))}</div></div>
         </div>
         <p class="mono" style="margin-top:12px;">${escapeHtml(info.budgetPda)}</p>
+        ${lastSolscanUrl ? `<a href="${escapeHtml(lastSolscanUrl)}" target="_blank" style="display:block; margin-top:8px; font-size:12.5px;">방금 낸 트랜잭션 Solscan에서 보기 →</a>` : ""}
         <a class="pill-btn" href="/advertiser-budget-agent.html" style="display:inline-block; margin-top:14px;">예산 에이전트 실행하러 가기 →</a>
       `;
       document.getElementById("amountLabel").textContent = "추가로 충전할 금액 (원)";
@@ -53,8 +55,6 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
 
   // 반올림 손실 방지: 원 -> USDC 변환에서 소수점을 미리 자르지 않고 그대로 넘김
   const amountUsdc = amountKrw / krwPerUsdc;
-
-  const solscanTab = window.open("", "_blank");
 
   btn.disabled = true;
   const wasExisting = budgetExists;
@@ -81,18 +81,11 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     });
 
     toast(wasExisting ? `내 지갑으로 직접 서명해서 ${won(amountKrw)}가 추가로 충전됐어요!` : `내 지갑으로 직접 서명해서 Budget PDA가 생성되고 ${won(amountKrw)}가 충전됐어요!`);
-    if (data.solscanUrl && solscanTab) {
-      solscanTab.location = data.solscanUrl;
-    } else if (data.solscanUrl) {
-      window.open(data.solscanUrl, "_blank");
-    } else if (solscanTab) {
-      solscanTab.close();
-    }
+    lastSolscanUrl = data.solscanUrl || null;
     document.getElementById("amountKrw").value = "";
     document.getElementById("usdcHint").textContent = "";
     loadStatus(currentAdvertiserId, currentAdvertiserWallet);
   } catch (e) {
-    if (solscanTab) solscanTab.close();
     toast(e.message);
   } finally {
     btn.disabled = false;

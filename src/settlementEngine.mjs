@@ -76,23 +76,31 @@ export async function processOrder(orderId) {
   let signature, solscanUrl;
   try {
     const { settleFromEscrow, ensureCampaignEscrow } = await import("./escrow.mjs");
-    const { loadWallet } = await import("./solanaPay.mjs");
     const { WALLET_IDS } = await import("./config.mjs");
-    
-    // 1. 광고주 데모 지갑 (플랫폼 지갑과 분리됨)
-    const advertiserWallet = loadWallet(WALLET_IDS.advertiser);
-    const advertiserPubkey = advertiserWallet.publicKey.toBase58();
 
-    // 2. 온체인 Campaign PDA / Vault PDA가 없으면 자동 입금 및 에스크로 계정 생성 보장.
-    //    (정상 경로에서는 캠페인 등록 시점에 이미 생성돼 있음 — 여기는 그 전에 만들어진
-    //    구캠페인을 위한 안전망. 하드코딩된 값 대신 실제 캠페인 예산을 사용함)
-    await ensureCampaignEscrow({
-      advertiserWalletId: WALLET_IDS.advertiser,
-      campaignId: campaign.id,
-      budgetUsdc: resolveBudgetUsdc(campaign),
-    });
+    // Campaign PDA는 등록 당시 서명한 지갑 기준으로 도출되므로, 정산도 같은 지갑을 써야 한다.
+    let advertiserPubkey;
+    if (campaign.advertiserWallet) {
+      // 패스키(광고주 실지갑)로 등록된 캠페인. finalize가 온체인 확정을 먼저 확인한 뒤에만
+      // DB에 기록하므로 Campaign PDA는 이미 존재함이 보장됨 — 별도 안전망 호출 불필요.
+      advertiserPubkey = campaign.advertiserWallet;
+    } else {
+      // [LEGACY] 패스키 이전에 커스터디얼 데모 지갑으로 등록된 구캠페인.
+      const { loadWallet } = await import("./solanaPay.mjs");
+      const legacyAdvertiserWallet = loadWallet(WALLET_IDS.advertiser);
+      advertiserPubkey = legacyAdvertiserWallet.publicKey.toBase58();
 
-    // 3. 진짜 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC 정산 해제 (Release)
+      // 온체인 Campaign PDA / Vault PDA가 없으면 자동 입금 및 에스크로 계정 생성 보장.
+      // (정상 경로에서는 캠페인 등록 시점에 이미 생성돼 있음 — 여기는 그 전에 만들어진
+      //  구캠페인을 위한 안전망. 하드코딩된 값 대신 실제 캠페인 예산을 사용함)
+      await ensureCampaignEscrow({
+        advertiserWalletId: WALLET_IDS.advertiser,
+        campaignId: campaign.id,
+        budgetUsdc: resolveBudgetUsdc(campaign),
+      });
+    }
+
+    // 진짜 온체인 에스크로 Vault에서 크리에이터 지갑으로 USDC 정산 해제 (Release)
     const res = await settleFromEscrow({
       advertiserPubkey,
       creatorPubkey: promoter.walletAddress,

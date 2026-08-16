@@ -181,60 +181,63 @@ async function handleApi(req, res, url, parts) {
     return sendJson(res, 200, { campaigns });
   }
 
-  // POST /api/campaigns
-  if (method === "POST" && parts.length === 1 && parts[0] === "campaigns") {
-    const body = await readBody(req);
-    if (!body.advertiser || !body.product || !body.price || !Array.isArray(body.commissionTiers) || body.commissionTiers.length === 0) {
-      return sendJson(res, 400, { error: "advertiser, product, price, commissionTiers는 필수입니다." });
-    }
-
-    const campaignId = `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`;
-    const budgetKrw = Number(body.budgetKrw || 1000000);
-    const budgetUsdc = budgetKrw / KRW_PER_USDC;
-
-    // 온체인 예치를 먼저 시도하고, 성공했을 때만 DB에 캠페인을 기록함(실패한 캠페인이 목록에 남지 않게).
-    let onchain;
-    try {
-      const { createCampaignEscrow } = await import("./src/escrow.mjs");
-      const result = await createCampaignEscrow({ campaignId, budgetUsdc });
-      onchain = {
-        campaignPda: result.campaignPda,
-        vaultPda: result.vaultPda,
-        depositTx: result.signature,
-        platformFeeUsdc: result.platformFeeUsdc,
-        solscanUrl: result.solscanUrl,
-      };
-      console.log(`[POST /api/campaigns] ✅ 온체인 예치 완료: ${result.signature}`);
-    } catch (e) {
-      console.error("[POST /api/campaigns] ⚠️ 온체인 예치 실패:", e); // 기술적인 원본 로그는 서버에만 남김
-      return sendJson(res, 502, { error: friendlyOnchainError(e) });
-    }
-
-    const campaign = insert("campaigns", {
-      id: campaignId,
-      advertiser: body.advertiser,
-      advertiserId: body.advertiserId || null, // 패스키로 로그인한 광고주 계정 id (2단계: 온보딩)
-      advertiserWallet: body.advertiserWallet || null, // 위 계정의 실제 지갑 주소
-      product: body.product,
-      description: body.description || "",
-      productUrl: body.productUrl || "",
-      guideline: body.guideline || "",
-      tags: body.tags || [],
-      price: Number(body.price),
-      currency: "KRW",
-      commissionTiers: body.commissionTiers,
-      confirmDelayDays: Number(body.confirmDelayDays || 7),
-      budgetKrw,
-      budgetUsdc,
-      onchain, // { campaignPda, vaultPda, depositTx, platformFeeUsdc, solscanUrl }
-      // 광고주에게는 노출하지 않고, 등록 순서에 따라 내부적으로 쇼핑몰 스키마를 자동 배정
-      // (Gemini가 여러 쇼핑몰의 서로 다른 주문상태 스키마를 정규화하는 동작은 그대로 유지됨)
-      thumbnail: body.thumbnail || "/images/campaigns/moisturizer.svg",
-      shopId: SHOP_IDS[readAll("campaigns").length % SHOP_IDS.length],
-      status: "active",
-    });
-    return sendJson(res, 201, { campaign });
-  }
+  // [LEGACY] POST /api/campaigns — 서버가 커스터디얼 지갑으로 대신 서명해 캠페인을 생성하던 구버전.
+  // 지금은 advertiser-register.js가 /api/campaigns/prepare + /finalize로 광고주 실제 패스키
+  // 지갑에서 직접 서명하므로 더 이상 호출되지 않음 — 코드는 참고용으로 남겨두되 비활성화.
+  //
+  // if (method === "POST" && parts.length === 1 && parts[0] === "campaigns") {
+  //   const body = await readBody(req);
+  //   if (!body.advertiser || !body.product || !body.price || !Array.isArray(body.commissionTiers) || body.commissionTiers.length === 0) {
+  //     return sendJson(res, 400, { error: "advertiser, product, price, commissionTiers는 필수입니다." });
+  //   }
+  //
+  //   const campaignId = `c-${uuidv4().replace(/-/g, "").slice(0, 16)}`;
+  //   const budgetKrw = Number(body.budgetKrw || 1000000);
+  //   const budgetUsdc = budgetKrw / KRW_PER_USDC;
+  //
+  //   // 온체인 예치를 먼저 시도하고, 성공했을 때만 DB에 캠페인을 기록함(실패한 캠페인이 목록에 남지 않게).
+  //   let onchain;
+  //   try {
+  //     const { createCampaignEscrow } = await import("./src/escrow.mjs");
+  //     const result = await createCampaignEscrow({ campaignId, budgetUsdc });
+  //     onchain = {
+  //       campaignPda: result.campaignPda,
+  //       vaultPda: result.vaultPda,
+  //       depositTx: result.signature,
+  //       platformFeeUsdc: result.platformFeeUsdc,
+  //       solscanUrl: result.solscanUrl,
+  //     };
+  //     console.log(`[POST /api/campaigns] ✅ 온체인 예치 완료: ${result.signature}`);
+  //   } catch (e) {
+  //     console.error("[POST /api/campaigns] ⚠️ 온체인 예치 실패:", e); // 기술적인 원본 로그는 서버에만 남김
+  //     return sendJson(res, 502, { error: friendlyOnchainError(e) });
+  //   }
+  //
+  //   const campaign = insert("campaigns", {
+  //     id: campaignId,
+  //     advertiser: body.advertiser,
+  //     advertiserId: body.advertiserId || null, // 패스키로 로그인한 광고주 계정 id (2단계: 온보딩)
+  //     advertiserWallet: body.advertiserWallet || null, // 위 계정의 실제 지갑 주소
+  //     product: body.product,
+  //     description: body.description || "",
+  //     productUrl: body.productUrl || "",
+  //     guideline: body.guideline || "",
+  //     tags: body.tags || [],
+  //     price: Number(body.price),
+  //     currency: "KRW",
+  //     commissionTiers: body.commissionTiers,
+  //     confirmDelayDays: Number(body.confirmDelayDays || 7),
+  //     budgetKrw,
+  //     budgetUsdc,
+  //     onchain, // { campaignPda, vaultPda, depositTx, platformFeeUsdc, solscanUrl }
+  //     // 광고주에게는 노출하지 않고, 등록 순서에 따라 내부적으로 쇼핑몰 스키마를 자동 배정
+  //     // (Gemini가 여러 쇼핑몰의 서로 다른 주문상태 스키마를 정규화하는 동작은 그대로 유지됨)
+  //     thumbnail: body.thumbnail || "/images/campaigns/moisturizer.svg",
+  //     shopId: SHOP_IDS[readAll("campaigns").length % SHOP_IDS.length],
+  //     status: "active",
+  //   });
+  //   return sendJson(res, 201, { campaign });
+  // }
 
   // POST /api/campaigns/prepare  { advertiserWallet, budgetKrw }
   // 광고주 실제 지갑(LazorKit 패스키)으로 브라우저에서 직접 서명하게 할 때, 서버는 서명 없이
@@ -926,24 +929,26 @@ async function handleApi(req, res, url, parts) {
     }
   }
 
-  // POST /api/advertiser/:id/budget  { amountUsdc } — Budget PDA 충전(광고주 서명).
-  // Budget PDA가 아직 없으면 새로 생성하면서 입금하고, 이미 있으면 같은 Vault에 추가로 입금한다.
-  if (method === "POST" && parts.length === 3 && parts[0] === "advertiser" && parts[2] === "budget") {
-    const body = await readBody(req);
-    const amountUsdc = Number(body.amountUsdc);
-    if (!amountUsdc || amountUsdc <= 0) {
-      return sendJson(res, 400, { error: "amountUsdc(0보다 큰 값)가 필요합니다." });
-    }
-    try {
-      const { createAdvertiserBudget, topUpBudget, getAdvertiserBudgetInfo } = await import("./src/escrow.mjs");
-      const info = await getAdvertiserBudgetInfo();
-      const result = info.exists ? await topUpBudget({ amountUsdc }) : await createAdvertiserBudget({ amountUsdc });
-      return sendJson(res, 201, { ...result, created: !info.exists });
-    } catch (e) {
-      console.error("[POST budget] 에러:", e);
-      return sendJson(res, 502, { error: friendlyOnchainError(e) });
-    }
-  }
+  // [LEGACY] POST /api/advertiser/:id/budget — 서버가 커스터디얼 지갑으로 대신 서명해 Budget PDA를
+  // 생성/충전하던 구버전. 지금은 advertiser-budget-setup.js가 아래 /prepare + /finalize로 광고주
+  // 실제 패스키 지갑에서 직접 서명하므로 더 이상 호출되지 않음 — 코드는 참고용으로 남겨두되 비활성화.
+  //
+  // if (method === "POST" && parts.length === 3 && parts[0] === "advertiser" && parts[2] === "budget") {
+  //   const body = await readBody(req);
+  //   const amountUsdc = Number(body.amountUsdc);
+  //   if (!amountUsdc || amountUsdc <= 0) {
+  //     return sendJson(res, 400, { error: "amountUsdc(0보다 큰 값)가 필요합니다." });
+  //   }
+  //   try {
+  //     const { createAdvertiserBudget, topUpBudget, getAdvertiserBudgetInfo } = await import("./src/escrow.mjs");
+  //     const info = await getAdvertiserBudgetInfo();
+  //     const result = info.exists ? await topUpBudget({ amountUsdc }) : await createAdvertiserBudget({ amountUsdc });
+  //     return sendJson(res, 201, { ...result, created: !info.exists });
+  //   } catch (e) {
+  //     console.error("[POST budget] 에러:", e);
+  //     return sendJson(res, 502, { error: friendlyOnchainError(e) });
+  //   }
+  // }
 
   // POST /api/advertiser/:id/budget/prepare  { advertiserWallet, amountUsdc }
   // 광고주 실제 지갑(LazorKit 패스키)으로 브라우저에서 직접 서명하게 할 때, 서버는 서명 없이
