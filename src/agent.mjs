@@ -382,7 +382,11 @@ export async function chat(history, userMessage, role = "general") {
 
   const MAX_ROUNDS = 5; // 도구 호출 최대 반복 횟수
 
-  const MODELS = ["gemini-3.6-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  // gemini-2.0-flash/gemini-1.5-flash는 이 API 키에서 404(존재하지 않음)를 반환해서 폴백이
+  // 전혀 동작하지 않고 있었음(실측 확인) — 실제로 존재하는 모델로 교체.
+  // gemini-3.6-flash를 1순위로 뒀더니 반복 테스트로 할당량(429)이 소진돼 매 라운드 재시도로
+  // 오히려 느려지는 걸 확인해서, 할당량 여유가 있고 응답도 더 빠른 gemini-3.5-flash를 1순위로 둠.
+  const MODELS = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"];
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const body = {
