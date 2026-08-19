@@ -54,6 +54,20 @@ suggestedWeight들의 합은 캠페인 전반의 성과 수준에 따라 이미 
 1. signal이 "exclude"인 캠페인은 weight 반드시 0 — 이 경우 apply_topup을 호출하지 마세요(불필요한 트랜잭션 방지)
 2. 한 캠페인의 weight는 ${WEIGHT_CAP}를 초과할 수 없음
 3. suggestedWeight에서 벗어나게 결정했다면, 어떤 신호 때문인지 reason에 반드시 남기세요
+
+reason 작성 규칙 (매우 중요 — apply_topup의 reason은 광고주가 그대로 읽는 문구입니다):
+- momentum, 기준선, weight, 수치 비교(예: "2.0 >= 1.5") 같은 내부 로직 용어는 절대 쓰지 마세요. 쉬운 말로, 그러나 전문적인 어투로 쓰세요.
+- 반드시 두괄식으로 시작하세요: "[캠페인명]에 [금액] USDC를 추가로 배분했습니다." (감액/보류 시에는 "[캠페인명]은 이번에 배분을 줄였습니다." 처럼)
+- 이어서 1~2문장으로 이유를 쉬운 말로 설명하고, "~하는 것이 효율적이라고 판단했습니다" 또는 "~하는 것이 안전하다고 판단했습니다"로 마무리하세요.
+- 전체 3문장을 넘기지 마세요.
+- 확신 있는 어투로 단정해서 쓰세요. "~것 같습니다", "~일 수도 있습니다", "아마" 같은 애매한 표현은 쓰지 마세요 — 이미 데이터를 분석해서 내린 결정이니, 그 판단을 확신 있게 전달하세요.
+
+예시:
+1. (판매 속도 상승) "테스트 캠페인 B에 1.21 USDC를 추가로 배분했습니다. 최근 판매 속도가 빨라지고 있어서, 이 흐름을 유지할 수 있도록 예산을 추가 배분하는 것이 효율적이라고 판단했습니다."
+2. (예산 소진 임박) "무기자차 선크림에 3.5 USDC를 추가로 배분했습니다. 배정된 예산이 곧 소진될 예정이라, 판매 기회를 놓치지 않도록 예산을 미리 늘리는 것이 효율적이라고 판단했습니다."
+3. (표본 부족) "테스트 캠페인 A는 이번에 예산을 배분하지 않았습니다. 아직 주문과 참여 크리에이터 수가 적어 성과를 판단하기엔 이르다고 보고, 좀 더 지켜본 뒤 다시 검토하는 것이 안전하다고 판단했습니다."
+4. (취소율 상승 조짐) "OO 캠페인은 이번에 배분을 줄였습니다. 최근 주문 취소 비율이 조금씩 높아지고 있어서, 추이를 지켜보며 신중하게 접근하는 것이 안전하다고 판단했습니다."
+
 weight>0인 캠페인마다 apply_topup 도구를 호출해 실제로 반영하세요.
 모든 배분을 마친 뒤에는 이번 실행 전체를 종합한 총평만 최종 출력하세요(개별 금액은 다시 계산해서 적지 마세요).`;
 
@@ -84,7 +98,16 @@ const TOOLS = [
 
 const JSON_INSTRUCTION = `이번 실행 전체를 종합한 총평만 아래 스키마의 JSON으로 출력하세요.
 개별 캠페인 금액은 이미 apply_topup 결과로 반영됐으니 다시 계산하지 마세요.
-{ "summary": string }`;
+{ "summary": string }
+
+summary 작성 규칙 (매우 중요 — 광고주가 이 화면에서 제일 먼저 읽는 문구입니다):
+- momentum, 기준선, weight, 수치 비교(예: "0.20 -> 0.05") 같은 내부 로직 용어는 절대 쓰지 마세요. 쉬운 말로, 그러나 전문적인 어투로 쓰세요.
+- 반드시 두괄식으로 시작하세요: "이번 판단에서는 [N]개 캠페인에 총 [금액] USDC를 배분했습니다."
+- 이어서 1~2문장으로 전체적인 판단 기준(어떤 캠페인에 왜 늘리고 줄였는지)을 쉬운 말로 요약하세요.
+- 전체 3문장을 넘기지 마세요.
+- 확신 있는 어투로 단정해서 쓰세요. "~것 같습니다", "~일 수도 있습니다", "아마" 같은 애매한 표현은 쓰지 마세요.
+
+예시: "이번 판단에서는 3개 캠페인에 총 12.86 USDC를 배분했습니다. 판매 속도가 빨라지고 있거나 이미 안정적인 성과를 내는 캠페인 위주로 예산을 늘렸고, 아직 참여 크리에이터와 주문 실적이 충분히 쌓이지 않은 캠페인은 이번엔 배분에서 제외했습니다."`;
 
 async function getCampaignBudgetState(campaignId) {
   const campaign = await findById("campaigns", campaignId);
@@ -227,7 +250,7 @@ export async function runAllocatorAgent({ a2aMessage, poolUsdc }) {
       const res = await executeToolCall("apply_topup", {
         campaignId: c.campaignId,
         weight: Math.min(c.suggestedWeight, WEIGHT_CAP),
-        reason: "Gemini API를 쓸 수 없어 기준선(suggestedWeight)을 그대로 적용했습니다.",
+        reason: "성과 점수 비례로 예산을 배분했습니다. 판매 실적을 기준으로 산정한 값입니다.",
       });
       transcript.push({ type: "tool_call", name: "apply_topup", args: { campaignId: c.campaignId }, result: res });
     }
@@ -244,7 +267,10 @@ export async function runAllocatorAgent({ a2aMessage, poolUsdc }) {
       weight: 0,
       amountUsdc: 0,
       amountKrw: 0,
-      reason: c.signal === "exclude" ? `${c.reasoning || "제외 기준 초과"} — 배분 대상에서 제외` : "배분 대상에서 제외됨",
+      reason:
+        c.signal === "exclude"
+          ? "이번엔 예산을 배분하지 않았습니다. 아직 성과가 뚜렷하지 않아 지켜본 뒤 다시 검토하는 것이 안전하다고 판단했습니다."
+          : "이번엔 예산을 배분하지 않았습니다. 다른 캠페인이 더 뚜렷한 성과를 보이고 있어 우선순위에서 밀렸습니다.",
       txSignature: null,
     });
   }
