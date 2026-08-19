@@ -69,7 +69,10 @@ function tierRateAt(tiers, n) {
 }
 
 function rewardUsdcAt(priceKrw, rate) {
-  return Math.round(((priceKrw * rate) / krwPerUsdc) * 100) / 100;
+  // 표시용으로 소수점 2자리 반올림을 여기서 미리 해버리면, 가격이 낮을 때 0.00으로 잘려서
+  // estimateMaxUnits의 "reward <= 0" 판정에 걸려 0개로 나오는 버그가 생김 — 반올림은
+  // 최종 표시(updateEstimate)에서만 하고, 여기선 정밀도를 그대로 유지한다.
+  return (priceKrw * rate) / krwPerUsdc;
 }
 
 function estimateMaxUnits(priceKrw, tiers, budgetUsdcEquivalent) {
