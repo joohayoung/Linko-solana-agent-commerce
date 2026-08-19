@@ -89,6 +89,20 @@ const TOOL_DECLARATIONS = [
     },
   },
   {
+    name: "get_advertiser_dashboard",
+    description:
+      "광고주의 전체 캠페인 성과를 한 번에 조회합니다: 캠페인별 예산 소진 현황(예산/소진액), 주문 건수(확정/대기/취소), 최근 주문 내역. '내 캠페인 성과 분석해줘', '예산 얼마나 썼어' 같은 광고주 질문엔 이 도구 하나로 충분합니다.",
+    parameters: {
+      type: "object",
+      properties: {
+        advertiser: {
+          type: "string",
+          description: "광고주 브랜드명. 사용자가 지정하지 않으면 생략(기본 광고주 기준으로 조회됨).",
+        },
+      },
+    },
+  },
+  {
     name: "generate_ad_copy",
     description:
       "캠페인의 상품정보와 가이드라인을 기반으로 SNS 광고 문구를 생성합니다. 이 도구는 광고 카피 텍스트를 직접 생성하지 않고, 캠페인 정보를 조회해 반환합니다. 당신이 그 정보를 바탕으로 창의적인 광고 문구를 작성해주세요.",
@@ -256,6 +270,56 @@ async function executeToolCall(name, args) {
       };
     }
 
+    case "get_advertiser_dashboard": {
+      // server.mjs의 GET /api/advertiser/dashboard와 동일한 집계 로직 — 광고주 질문에
+      // 캠페인 하나하나 개별 조회하며 라운드를 낭비하지 않도록 한 번에 필요한 걸 다 준다.
+      const advertiserFilter = args.advertiser;
+      const [allCampaigns, allOrders, promoters] = await Promise.all([
+        readAll("campaigns"),
+        readAll("orders"),
+        readAll("promoters"),
+      ]);
+      const campaignsById = Object.fromEntries(allCampaigns.map((c) => [c.id, c]));
+      const campaigns = allCampaigns.filter(
+        (c) => !advertiserFilter || c.advertiser === advertiserFilter
+      );
+
+      if (campaigns.length === 0) {
+        return { error: "해당 광고주의 캠페인을 찾을 수 없습니다." };
+      }
+
+      const campaignStats = campaigns.map((c) => {
+        const orders = allOrders.filter((o) => o.campaignId === c.id);
+        const settled = orders.filter((o) => o.status === "settled");
+        const spentUsdc = settled.reduce((s, o) => s + (o.commissionAmountUsdc || 0), 0);
+        return {
+          id: c.id,
+          product: c.product,
+          advertiser: c.advertiser,
+          budgetKrw: c.budgetKrw,
+          spentUsdc,
+          spentKrw: Math.round(spentUsdc * KRW_PER_USDC),
+          totalOrders: orders.length,
+          settledCount: settled.length,
+          pendingCount: orders.filter((o) => o.status === "purchased" || o.status === "pending_confirm").length,
+          cancelledCount: orders.filter((o) => o.status === "cancelled").length,
+        };
+      });
+
+      const campaignIds = new Set(campaigns.map((c) => c.id));
+      const recentOrders = allOrders
+        .filter((o) => campaignIds.has(o.campaignId))
+        .sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt))
+        .slice(0, 10)
+        .map((o) => ({
+          ...o,
+          product: campaignsById[o.campaignId]?.product || "-",
+          promoterName: promoters.find((p) => p.id === o.promoterId)?.name || "-",
+        }));
+
+      return { campaigns: campaignStats, recentOrders };
+    }
+
     case "calculate_earnings": {
       const campaign = await findById("campaigns", args.campaignId);
       if (!campaign) return { error: "캠페인을 찾을 수 없습니다." };
@@ -356,7 +420,9 @@ Linko는 성과형 광고 플랫폼으로, 크리에이터가 추천 링크로 �
       base +
       `\n\n현재 사용자는 광고주입니다.
 광고주에게 유용한 조언: 예산 소진 현황, 크리에이터별 성과 비교, 캠페인 최적화 방법 등.
-기본 광고주는 "선데이글로우"입니다.`
+기본 광고주는 "선데이글로우"입니다.
+"성과 분석해줘", "예산 얼마나 썼어" 같은 질문엔 get_advertiser_dashboard 도구 하나로 캠페인별 예산/소진액/주문현황을
+전부 받아올 수 있으니, get_campaign_detail을 캠페인마다 반복 호출하지 말고 이 도구를 먼저 사용하세요.`
     );
   }
   return base;
@@ -470,7 +536,17 @@ export async function chat(history, userMessage, role = "general") {
 
     // 텍스트 응답 → 최종 답변
     const textPart = parts.find((p) => p.text);
-    const reply = textPart?.text || "답변을 생성하지 못했습니다.";
+
+    // functionCall도 text도 없는 빈 응답 — 할당량 압박 등으로 가끔 발생하는 일시적 현상으로
+    // 확인됨(재시도하면 정상 응답이 옴). 바로 실패 메시지를 보여주는 대신, 방금 push한 빈
+    // 턴을 history에서 빼고 한 라운드 더 재시도한다(MAX_ROUNDS 안에서 자연스럽게 처리됨).
+    if (!textPart) {
+      console.log("[Agent] 빈 응답(functionCall/text 둘 다 없음) — 재시도");
+      contents.pop();
+      continue;
+    }
+
+    const reply = textPart.text;
 
     // 모델 답변을 history에 추가
     contents.push({
