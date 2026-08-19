@@ -33,47 +33,46 @@
       <div class="form-grid">
         <div class="field">
           <label>브랜드명</label>
-          <input id="advertiser" placeholder="예: 선데이글로우" />
+          <input id="advertiser" placeholder="예: 선데이글로우" value="나이키" />
         </div>
         <div class="field">
           <label>상품명</label>
-          <input id="product" placeholder="예: 무기자차 선크림 SPF50+" />
+          <input id="product" placeholder="예: 무기자차 선크림 SPF50+" value="엄지 손목 보호대" />
         </div>
       </div>
       <div class="field">
         <label>상품 설명</label>
-        <textarea id="description" rows="2" placeholder="한 줄 소개"></textarea>
+        <textarea id="description" rows="2" placeholder="한 줄 소개">언제나 손목을 보호해줄 수 있는 손목 보호대입니다.</textarea>
       </div>
       <div class="field">
         <label>실제 상품 페이지 URL</label>
-        <!-- <input id="productUrl" type="url" placeholder="https://your-shop.com/products/123" /> -->
-        <input id="productUrl" type="url" placeholder="https://your-shop.com/products/123" value="https://sundayglow-mall.com/products/sunscreen-spf50" />
+        <input id="productUrl" type="url" placeholder="https://your-shop.com/products/123" value="https://www.nike.com/kr" />
         <div class="hint">크리에이터의 추천 링크를 클릭하면 이 페이지로 연결돼요. (데모에서는 클릭만 로그로 남기고 체크아웃 시뮬레이터로 이동합니다)</div>
       </div>
       <div class="field">
         <label>광고 가이드라인</label>
-        <textarea id="guideline" rows="4" placeholder="예: 제품 실사용 후기 위주로 작성해주세요. 과장·허위 효능 문구는 금지입니다. 게시물에 추천 링크를 반드시 포함해주세요."></textarea>
+        <textarea id="guideline" rows="4" placeholder="예: 제품 실사용 후기 위주로 작성해주세요. 과장·허위 효능 문구는 금지입니다. 게시물에 추천 링크를 반드시 포함해주세요.">사무용, 스포츠용 어디서나 간편하게 사용하기 편리한 손목 보호대 입니다.</textarea>
         <div class="hint">크리에이터가 광고를 진행할 때 참고할 내용이에요. 캠페인 상세 페이지에 그대로 노출됩니다.</div>
       </div>
       <div class="form-grid">
         <div class="field">
           <label>태그 (쉼표로 구분)</label>
-          <input id="tags" placeholder="스킨케어, 여름, 자외선차단" />
+          <input id="tags" placeholder="스킨케어, 여름, 자외선차단" value="스포츠, 사무, 나이키" />
         </div>
         <div class="field">
           <label>가격 (원)</label>
-          <input id="price" type="number" placeholder="28000" />
+          <input id="price" type="number" placeholder="28000" value="700" />
         </div>
       </div>
       <div class="form-grid">
         <div class="field">
           <label>확정대기기간 (일)</label>
-          <input id="confirmDelayDays" type="number" placeholder="7" />
+          <input id="confirmDelayDays" type="number" placeholder="7" value="7" />
           <div class="hint">이 기간이 지나면 자동으로 확정되어 정산됩니다.</div>
         </div>
         <div class="field">
           <label>캠페인 예산 (원)</label>
-          <input id="budgetKrw" type="number" placeholder="1000000" />
+          <input id="budgetKrw" type="number" placeholder="1000000" value="5000" />
           <div class="hint">실제 정산은 USDC로 온체인에서 즉시 지급돼요. 예산은 원화로 설정하면 자동 환산돼요.</div>
         </div>
       </div>
