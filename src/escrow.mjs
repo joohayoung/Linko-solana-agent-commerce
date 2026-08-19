@@ -113,11 +113,12 @@ async function getDiscriminator(name) {
  * 서버는 여기서 아무 키도 쥐고 서명하지 않고, advertiserPubkey는 그냥 값으로만 들어감.
  * LazorKit 스마트월렛은 off-curve PDA라 ATA 조회 시 allowOwnerOffCurve=true가 필요함.
  *
- * SOL 충전/ATA 생성 같은 "플랫폼 전용 서명" 준비 작업은 미리 별도 트랜잭션으로 끝내두고,
- * 자주 반복되는 고정 계정(USDC 민트, 토큰 프로그램, 에스크로 프로그램, 시스템 프로그램,
- * 플랫폼 ATA)은 주소 룩업 테이블(ALT)에 담아서 반환한다 — LazorKit의 CPI 서명 래핑
- * 오버헤드가 커서 ALT 없이는 인스트럭션 하나만으로도 Solana 트랜잭션 크기 한도(1232바이트)를
- * 넘겨버리기 때문. ALT 덕분에 create_campaign + 수수료 이체를 한 트랜잭션에 같이 담을 수 있다.
+ * SOL 충전/ATA 생성 같은 "플랫폼 전용 서명" 준비 작업은 미리 별도 트랜잭션으로 끝내둔다.
+ *
+ * create_campaign + 수수료 이체를 한 트랜잭션(그룹 1개)에 담아 반환한다. altAddresses를
+ * 같이 반환하지만, LazorKit SDK가 우리 인스트럭션을 자기 프로그램으로 감싸며 트랜잭션을
+ * 재구성할 때 이 ALT가 실제로는 반영되지 않는 걸 확인함(addressTableLookups가 항상 빈
+ * 배열로 나감) — SDK 2.1.0 업그레이드 이후로는 크기 문제 없이 통과되고 있어 일단 유지.
  */
 export async function buildCampaignInstructions({ advertiserPubkey, campaignId, budgetUsdc }) {
   const platformAuthority = loadWallet(WALLET_IDS.platform);
@@ -157,19 +158,18 @@ export async function buildCampaignInstructions({ advertiserPubkey, campaignId, 
     { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
-  const instructions = [new TransactionInstruction({ programId: ESCROW_PROGRAM_ID, keys, data: ixData })];
+  const createCampaignIx = new TransactionInstruction({ programId: ESCROW_PROGRAM_ID, keys, data: ixData });
 
   // 플랫폼 수수료 — 예산과는 별도로 (예산 × PLATFORM_FEE_RATE)만큼 광고주 ATA → 플랫폼 ATA 이체
   const platformFeeUsdc = budgetUsdc * PLATFORM_FEE_RATE;
+
+  const instructions = [createCampaignIx];
   if (platformFeeUsdc > 0) {
     const platformFeeRaw = BigInt(Math.round(platformFeeUsdc * 1e6));
     instructions.push(
       createTransferCheckedInstruction(advertiserAta, USDC_DEVNET_MINT, platformAta, advertiserPubkey, platformFeeRaw, 6)
     );
   }
-
-  // ALT 덕분에 대부분 한 트랜잭션(그룹 1개)에 다 들어가지만, 혹시 여전히 너무 크면 나중에
-  // 그룹을 나눌 수 있게 instructionGroups(배열의 배열) 형태로 반환해둔다.
   const instructionGroups = [instructions];
 
   return {

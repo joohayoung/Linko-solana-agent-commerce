@@ -48,7 +48,9 @@ export async function handlePaymasterRpc(body) {
       // VersionedTransaction.deserialize()는 레거시/v0 포맷을 자동 감지해서 둘 다 처리하므로
       // 이걸로 통일한다.
       case "signTransaction": {
-        const [txBase64] = params;
+        // SDK 2.1.0부터 params가 배열([txBase64])이 아니라 객체({transaction, signer_key?})로 옴 —
+        // 둘 다 지원하도록 처리.
+        const txBase64 = Array.isArray(params) ? params[0] : params.transaction;
         const tx = VersionedTransaction.deserialize(Buffer.from(txBase64, "base64"));
         tx.sign([platformKeypair]);
         const signed = Buffer.from(tx.serialize()).toString("base64");
@@ -56,8 +58,27 @@ export async function handlePaymasterRpc(body) {
       }
 
       case "signAndSendTransaction": {
-        const [txBase64] = params;
+        // SDK 2.1.0부터 params가 배열([txBase64])이 아니라 객체({transaction, signer_key?})로 옴 —
+        // 둘 다 지원하도록 처리.
+        const txBase64 = Array.isArray(params) ? params[0] : params.transaction;
         const tx = VersionedTransaction.deserialize(Buffer.from(txBase64, "base64"));
+        // 임시 디버그 로그 — LazorKit SDK가 실제로 어떤 트랜잭션 구조를 보내는지 확인용
+        try {
+          const msg = tx.message;
+          console.error("[paymaster][DEBUG] staticAccountKeys:", msg.staticAccountKeys.map((k) => k.toBase58()));
+          console.error("[paymaster][DEBUG] addressTableLookups:", msg.addressTableLookups.map((l) => ({
+            table: l.accountKey.toBase58(),
+            writableIndexes: l.writableIndexes,
+            readonlyIndexes: l.readonlyIndexes,
+          })));
+          console.error("[paymaster][DEBUG] compiledInstructions:", msg.compiledInstructions.map((ix) => ({
+            programIdIndex: ix.programIdIndex,
+            accountKeyIndexes: ix.accountKeyIndexes,
+            dataLen: ix.data.length,
+          })));
+        } catch (dbgErr) {
+          console.error("[paymaster][DEBUG] 디코딩 실패:", dbgErr.message);
+        }
         tx.sign([platformKeypair]);
         const raw = tx.serialize();
         try {
