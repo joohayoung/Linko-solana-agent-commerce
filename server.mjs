@@ -166,6 +166,10 @@ async function handleApi(req, res, url, parts) {
   if (method === "GET" && parts.length === 1 && parts[0] === "campaigns") {
     const q = url.searchParams.get("q");
     let campaigns = await readAll("campaigns");
+    // 데모 중 목록을 깔끔하게 보여주기 위해 hiddenFromBrowse로 표시된 캠페인은 이 공개 둘러보기
+    // 목록/검색에서만 제외한다 — 데이터는 그대로 남아있어서 상세 조회/주문/정산/AI 챗봇 등
+    // 다른 기능에는 영향 없고, 새로 등록되는 캠페인은 이 플래그가 없으므로 자동으로 노출된다.
+    campaigns = campaigns.filter((c) => !c.hiddenFromBrowse);
     if (q) {
       campaigns = await searchCampaigns(campaigns, q);
     } else {
