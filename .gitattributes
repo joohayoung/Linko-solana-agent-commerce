@@ -1,0 +1,4 @@
+# 셸 스크립트는 Windows에서 체크아웃해도 항상 LF를 유지해야 함 —
+# CRLF로 바뀌면 셔뱅 라인이 "#!/bin/sh\r"가 되어 Docker 컨테이너 시작이 실패함
+# (docker-entrypoint.sh가 이 문제로 Cloud Run 배포에 실패한 적 있음).
+*.sh text eol=lf
