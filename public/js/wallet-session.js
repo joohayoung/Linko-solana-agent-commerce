@@ -104,35 +104,9 @@ async function linkoRequireRoleSession(role, onReady, opts = {}) {
         account = { id: savedId };
       }
     }
-
-    // LazorKit은 브라우저/오리진 단위로 지갑을 하나만 캐시하기 때문에, 같은 브라우저에서
-    // 다른 role(예: 크리에이터)로 마지막에 연결했었다면 window.LinkoWallet의 실제 연결 상태가
-    // 이 role의 저장된 지갑 주소와 다를 수 있다. 이 상태로 서명을 진행하면 화면엔 이 role의
-    // 지갑 주소가 보이는데 실제 서명은 다른 지갑으로 나가서 "서명 불일치"로 트랜잭션이 실패한다.
-    //
-    // (버튼 클릭 없이 여기서 자동으로 connect()까지 재시도하는 방식을 시도했었으나, WebAuthn은
-    // 진짜 사용자 제스처 없이 호출되면 "timed out or was not allowed" 에러로 브라우저가 거부하는
-    // 경우가 있어 오히려 불안정했다 — 그래서 안정성을 위해 자동 재연결 없이, 불일치를 감지하면
-    // 끊기만 하고 아래의 기존 "연결 배너"(버튼 클릭으로 진짜 사용자 제스처가 있는 재연결)로
-    // 넘어가 사용자가 명시적으로 다시 연결하게 한다.
-    let needsReconnect = false;
-    try {
-      const wallet = await linkoWaitForWalletWidget();
-      const state = wallet.getState ? wallet.getState() : null;
-      if (state?.isConnected && state.walletAddress && account?.walletAddress && state.walletAddress !== account.walletAddress) {
-        await wallet.disconnect();
-        needsReconnect = true;
-      }
-    } catch {
-      /* 무시 — 확인 실패해도 기존 동작(캐시 신뢰)으로 진행 */
-    }
-
-    if (!needsReconnect) {
-      linkoRenderWalletBadge(role, account);
-      onReady(savedId, account);
-      return;
-    }
-    // needsReconnect === true인 경우, 여기서 return하지 않고 아래 연결 배너 플로우로 이어진다.
+    linkoRenderWalletBadge(role, account);
+    onReady(savedId, account);
+    return;
   }
 
   const copy =
