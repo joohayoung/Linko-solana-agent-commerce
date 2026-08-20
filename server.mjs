@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { v4 as uuidv4 } from "uuid";
 import { PublicKey } from "@solana/web3.js";
 
-import { readAll, findById, findWhere, insert, update } from "./src/db.mjs";
+import { readAll, readAllNewestFirst, findById, findWhere, insert, update } from "./src/db.mjs";
 import { processOrder } from "./src/settlementEngine.mjs";
 import { calculateTierRate } from "./src/commission.mjs";
 import { searchCampaigns } from "./src/search.mjs";
@@ -165,15 +165,18 @@ async function handleApi(req, res, url, parts) {
   // GET /api/campaigns?q=...
   if (method === "GET" && parts.length === 1 && parts[0] === "campaigns") {
     const q = url.searchParams.get("q");
-    let campaigns = await readAll("campaigns");
     // 데모 중 목록을 깔끔하게 보여주기 위해 hiddenFromBrowse로 표시된 캠페인은 이 공개 둘러보기
     // 목록/검색에서만 제외한다 — 데이터는 그대로 남아있어서 상세 조회/주문/정산/AI 챗봇 등
     // 다른 기능에는 영향 없고, 새로 등록되는 캠페인은 이 플래그가 없으므로 자동으로 노출된다.
-    campaigns = campaigns.filter((c) => !c.hiddenFromBrowse);
+    let campaigns;
     if (q) {
+      campaigns = (await readAll("campaigns")).filter((c) => !c.hiddenFromBrowse);
       campaigns = await searchCampaigns(campaigns, q);
     } else {
-      campaigns = [...campaigns].reverse(); // 최신 등록 캠페인이 상단에 위치하도록 역순 정렬
+      // readAllNewestFirst: Firestore의 문서 생성 시각 메타데이터로만 정렬(데이터 모델 변경 없음) —
+      // 최근 등록한 캠페인이 실제로 상단에 오도록 함(기존 .reverse()는 Firestore 반환 순서가
+      // 생성 순서를 보장하지 않아 실제로는 최신순이 아니었음).
+      campaigns = (await readAllNewestFirst("campaigns")).filter((c) => !c.hiddenFromBrowse);
     }
     return sendJson(res, 200, { campaigns });
   }

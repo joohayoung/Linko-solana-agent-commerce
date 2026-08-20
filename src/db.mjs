@@ -18,6 +18,16 @@ export async function readAll(collection) {
   return snapshot.docs.map((doc) => doc.data());
 }
 
+// 문서 내용(데이터 모델)은 전혀 건드리지 않고, Firestore가 각 문서마다 자동으로 관리하는
+// 생성 시각 메타데이터(doc.createTime)만 읽기 전용으로 활용해서 "최근 생성된 것부터" 순서로
+// 반환한다 — 캠페인 둘러보기 목록을 최신순으로 보여주기 위한 용도. readAll과 반환 데이터
+// 형태(각 문서의 data())는 완전히 동일하고, 정렬 순서만 다르다.
+export async function readAllNewestFirst(collection) {
+  const snapshot = await firestore.collection(collection).get();
+  const docs = [...snapshot.docs].sort((a, b) => b.createTime.toMillis() - a.createTime.toMillis());
+  return docs.map((doc) => doc.data());
+}
+
 export async function writeAll(collection, records) {
   const colRef = firestore.collection(collection);
   const existingDocs = await colRef.listDocuments();
